@@ -8,7 +8,8 @@
 - **做了什么**：`vaultmind/api`（FastAPI：/health /search /ask /stats /metrics /badcases /feedback；`qa_logs` 表落库（派生产物，问答日志+四分类反馈）；引用 `obsidian://` 跳转原笔记）+ 零依赖静态 Web 问答页与分析看板（CSS 条形图，不引 CDN——本机境外 CDN 多不可达，换机可用优先）+ `run_api.bat` 一键启动 + `tests/test_api.py`（12 条离线探针）+ `scripts/m5_smoke.py`。
 - **验证结果**：pytest **44/44**；在线冒烟 **6/6 PASS**——/health、问答页 HTML、/stats 与 DB 一致（docs=154/chunks=1237/links=409）、/metrics 与 baseline.md 精确一致且三项达标、/badcases=11、**/ask 真模型一问 13.6s 答对「TF-IDF+同分类约束」且非法引用=0**；期间 Ollama serve 会话间掉线（curl exit 7）已重启恢复。
 - **交付物**：`vaultmind/api/*`、`vaultmind/api/static/index.html`、`tests/test_api.py`、`scripts/m5_smoke.py`、`run_api.bat`、`docs/工单-M5-产品层.md`。
-- **遗留与下一步**：人工验收（浏览器 `http://127.0.0.1:8000`：问答/引用跳转/看板/反馈）→ **M6 六组消融**（查询改写/重排/权重/分块粒度/RRF 稀释案例/规模曲线）→ `reports/ablation.md`。
+- **人工验收**：用户浏览器实测可搜到知识库 ✅；`run_api.bat` 双击秒退已修复（根因：后台服务已占 8000 端口；现支持端口检测→已运行则提示开浏览器、启动成功 3 秒自动开浏览器、失败报错不秒退）。
+- **遗留与下一步**：~~人工验收~~（已通过）→ **M6 六组消融**（查询改写/重排/权重/分块粒度/RRF 稀释案例/规模曲线）→ `reports/ablation.md`。
 
 ## 2026-09-16 · M4 生成链路（W2 全部收官）
 
