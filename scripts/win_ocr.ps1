@@ -1,3 +1,7 @@
+param(
+    [Parameter(Mandatory = $false)]
+    [string]$ImagePath = ''
+)
 Add-Type -AssemblyName System.Runtime.WindowsRuntime
 $null = [Windows.Storage.StorageFile, Windows.Storage, ContentType = WindowsRuntime]
 $null = [Windows.Media.Ocr.OcrEngine, Windows.Foundation, ContentType = WindowsRuntime]
@@ -12,7 +16,8 @@ function Await($WinRtTask, $ResultType) {
     $netTask.Result
 }
 
-$path = 'D:\RAG\.dsh-vision-toolkit\tmp\pasted-images\ae7e9092347af3772384\attachment-a800d568e85adebccdef9da570a033e2.png'
+if (-not $ImagePath) { Write-Output 'NO_IMAGE_PATH'; exit 1 }
+$path = $ImagePath
 try {
     $file = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($path)) ([Windows.Storage.StorageFile])
     $stream = Await ($file.OpenAsync([Windows.Storage.FileAccessMode]::Read)) ([Windows.Storage.Streams.IRandomAccessStream])
