@@ -1,6 +1,6 @@
 # VaultMind 知识库体检报告
 
-> 生成时间：2026-09-16 13:54 ｜ 数据源（只读）：`D:\AI-Knowledge-Vault\AI-Knowledge-Vault` ｜ 复现命令：`D:\python\python.exe -m vaultmind.ingest`
+> 生成时间：2026-09-16 15:26 ｜ 数据源（只读）：`D:\AI-Knowledge-Vault\AI-Knowledge-Vault` ｜ 复现命令：`D:\python\python.exe -m vaultmind.ingest`
 
 ## 1. 规模概览与基线对比
 

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """从候选池取草稿种子写入 gold_set.jsonl（status=draft，仅供预览评测管道）。
 
-红线：gold 定稿（≥60 条 approved）必须由用户人工完成，本脚本只播种预览草稿。
+红线（M3，2026-09 更新）：gold 问题禁用 LLM 生成/判分；定稿由 scripts/finalize_gold.py
+按业界做法（分层抽样 + 配额 + 全局去重 + 校验闸门）算法化完成（用户已授权）。
+本脚本只播种预览草稿，正式定稿请跑 finalize_gold.py。
 """
 import json
 import sys

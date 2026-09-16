@@ -50,7 +50,7 @@ D:\RAG\
 - **生成**：Ollama `qwen2.5:7b-instruct`（本地）→ DeepSeek/通义千问（兜底）
 - **检索**：SQLite FTS5(BM25) + numpy 暴力 cosine → RRF 融合 → LLM 重排 → 双链图谱 1-hop/2-hop 扩展
 - **分块**：结构感知（frontmatter + H2 层级 + 元数据前缀注入）
-- **评测**：自建 60 条人工标注 gold 集 + Recall@k/MRR/nDCG@10/引用命中率/拒答率 + 6 组消融
+- **评测**：60 条 gold 集（候选池结构派生 + 分层抽样定稿，可复现，见 `reports/gold_finalization.md`）+ Recall@k/MRR/nDCG@10/引用命中率/拒答率 + 6 组消融
 - **前端**：原生 HTML+CSS+JS + Chart.js（零构建）
 - **刻意不用**：LangChain / Chroma / FAISS / torch（理由见 FEASIBILITY.md）
 
@@ -61,9 +61,9 @@ D:\RAG\
 | W1 | M0 立项 + M1 数据管道/体检 + M2 检索 v1 | `ingest.py`、`audit_report.md`、`search` CLI | 一条命令重建索引；报告数字与基线一致；Top-5 命中正确笔记 |
 | W2 | M3 gold 集 + baseline + M4 生成链路 | `eval` 一键指标表；带引用问答跑通 | 指标可复现；引用 100% 可追溯；超纲问题拒答 |
 | W3 | M5 产品层 + M6 六组消融 | Web 问答 + 分析看板；`ablation.md` | 浏览器问答引用可跳转；消融表各组件增益量化 |
-| W4 | 追加实验 + M7 工程化/求职转化 | GitHub 仓库 + 录屏 + 两套简历 bullet + Q&A 预案 | 换机按 README 可跑；简历每个数字可复现 |
+| W4 | 追加实验 + M7 工程化/求职转化 | GitHub 仓库 + 录屏 + 两套简历 bullet + Q&A 预案 + **《面试答辩手册 PDF》（终期交付物）** | 换机按 README 可跑；简历每个数字可复现；手册覆盖高频面试问题 |
 
-**W4 追加实验**：2-hop 图谱深度消融、重排三方案对比、分块粒度消融、暴力 vs HNSW 规模曲线、本地 vs 云端成本/延迟。
+**W4 追加实验**：2-hop 图谱深度消融、重排三方案对比、分块粒度消融、暴力 vs HNSW 规模曲线、本地 vs 云端成本/延迟、**联网采集与保鲜模块（B 主动采集为主 + C 保鲜巡检为辅，设计见 `docs/工单-W4-联网采集与保鲜模块.md`，排期 W4 不阻塞主线）**。
 
 ## 5. 开工前的首次手动准备（沙箱外执行一次，约 6 GB）
 
