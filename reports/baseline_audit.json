@@ -1,0 +1,232 @@
+{
+ "root": "D:\\AI-Knowledge-Vault\\AI-Knowledge-Vault",
+ "doc_count": 154,
+ "total_chars": 276977,
+ "body_chars": 246621,
+ "by_type": {
+  "knowledge": 51,
+  "log": 37,
+  "NO_FRONTMATTER": 19,
+  "decision": 15,
+  "project": 13,
+  "source": 13,
+  "index": 3,
+  "prompt": 2,
+  "system-rule": 1
+ },
+ "by_top_folder": {
+  "20-Knowledge": 52,
+  "50-Logs": 37,
+  "10-Projects": 21,
+  "40-Decisions": 15,
+  "60-References": 12,
+  "90-System": 11,
+  "AI Knowledge Hub.md": 1,
+  "MEMORY.md": 1,
+  "未命名 1.md": 1,
+  "未命名.md": 1,
+  "欢迎.md": 1,
+  "30-Prompts": 1
+ },
+ "by_status": {
+  "active": 122,
+  "(none)": 19,
+  "completed": 10,
+  "complete": 2,
+  "draft": 1
+ },
+ "no_frontmatter": [
+  "MEMORY.md",
+  "未命名 1.md",
+  "未命名.md",
+  "欢迎.md",
+  "10-Projects/python-learning-lab/capstone/project_spec.md",
+  "10-Projects/python-learning-lab/lessons/01_variables.md",
+  "10-Projects/python-learning-lab/lessons/02_conditions.md",
+  "10-Projects/python-learning-lab/lessons/03_loops.md",
+  "10-Projects/python-learning-lab/lessons/04_functions.md",
+  "10-Projects/python-learning-lab/lessons/05_data_structures.md",
+  "10-Projects/python-learning-lab/lessons/06_files.md",
+  "10-Projects/python-learning-lab/lessons/07_modules.md",
+  "10-Projects/python-learning-lab/lessons/08_oop.md",
+  "20-Knowledge/dsh 插件更新与维护工作流.md",
+  "40-Decisions/2026-09-12 dsh 插件更新 pnpm v11 对齐与构建策略.md",
+  "50-Logs/2026-09-12 dsh 插件检查更新.md",
+  "90-System/Indexes/Decision Index.md",
+  "90-System/Indexes/Knowledge Index.md"
+ ],
+ "est_chunks_h2": 1076,
+ "total_h2": 922,
+ "total_h3": 261,
+ "outlink_total": 409,
+ "unresolved_links": 29,
+ "orphans": [
+  "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md",
+  "10-Projects/python-learning-lab/lessons/08_oop.md",
+  "10-Projects/python-learning-lab/lessons/06_files.md",
+  "10-Projects/wudu-hongyadong-godot-demo/README.md",
+  "10-Projects/python-learning-lab/lessons/05_data_structures.md",
+  "10-Projects/python-learning-lab/lessons/07_modules.md",
+  "10-Projects/python-learning-lab/README.md",
+  "10-Projects/python-learning-lab/lessons/04_functions.md",
+  "10-Projects/python-learning-lab/lessons/03_loops.md",
+  "10-Projects/wang-li-ai-product-resume/README.md",
+  "50-Logs/2026-06-22 职场关键能力论文三轮迭代.md",
+  "10-Projects/python-learning-lab/lessons/02_conditions.md",
+  "10-Projects/python-learning-lab/lessons/01_variables.md",
+  "60-References/职场关键能力课程论文项目.md",
+  "60-References/CET-4 知识库参考笔记.md",
+  "50-Logs/2026-09-01 王克力求职自我介绍PPT制作.md",
+  "10-Projects/python-learning-lab/capstone/project_spec.md",
+  "50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md",
+  "50-Logs/2026-06-06 CET-4 4级基础模块开发.md",
+  "10-Projects/wang-keli-interview-ppt/README.md",
+  "50-Logs/2026-06-04 CET-4 知识库开发记录.md",
+  "50-Logs/2026-06-06 CET-4 蒙题技巧模块开发.md",
+  "10-Projects/shuangti-weekly-report/README.md",
+  "60-References/exam-review-doc-gen.md",
+  "50-Logs/2026-06-04 CET-4 启动器闪退修复.md"
+ ],
+ "top_inbound": [
+  [
+   "10-Projects/cet4-knowledge-base/README.md",
+   36
+  ],
+  [
+   "20-Knowledge/论文格式模板匹配方法论.md",
+   11
+  ],
+  [
+   "20-Knowledge/AIGC检测论文降重分析.md",
+   10
+  ],
+  [
+   "20-Knowledge/python-pptx 演示文稿自动化.md",
+   9
+  ],
+  [
+   "20-Knowledge/python-docx 文档自动化操作.md",
+   9
+  ],
+  [
+   "20-Knowledge/SQLite FTS5 全文搜索配置.md",
+   9
+  ],
+  [
+   "20-Knowledge/Python 数据结构.md",
+   9
+  ],
+  [
+   "20-Knowledge/HTML演示文稿转可编辑PPTX工作流.md",
+   8
+  ],
+  [
+   "20-Knowledge/Python 函数.md",
+   8
+  ],
+  [
+   "20-Knowledge/Word 复杂模板 textbox 拼接布局的精准改造方法论.md",
+   7
+  ],
+  [
+   "20-Knowledge/PaperPass降AIGC五版对照方法论.md",
+   7
+  ],
+  [
+   "20-Knowledge/Python 面向对象编程.md",
+   7
+  ]
+ ],
+ "largest": [
+  [
+   "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md",
+   6261
+  ],
+  [
+   "90-System/Indexes/Knowledge Index.md",
+   5990
+  ],
+  [
+   "10-Projects/python-learning-lab/lessons/08_oop.md",
+   4990
+  ],
+  [
+   "20-Knowledge/python-pptx 演示文稿自动化.md",
+   4927
+  ],
+  [
+   "20-Knowledge/Word 复杂模板 textbox 拼接布局的精准改造方法论.md",
+   4747
+  ],
+  [
+   "20-Knowledge/Ardot Canvas 设计稿制作工作流.md",
+   4419
+  ],
+  [
+   "MEMORY.md",
+   4119
+  ],
+  [
+   "10-Projects/python-learning-lab/lessons/06_files.md",
+   4020
+  ],
+  [
+   "10-Projects/wudu-hongyadong-godot-demo/README.md",
+   3992
+  ],
+  [
+   "20-Knowledge/dsh 插件更新与维护工作流.md",
+   3971
+  ],
+  [
+   "10-Projects/python-learning-lab/lessons/05_data_structures.md",
+   3917
+  ],
+  [
+   "10-Projects/cet4-knowledge-base/README.md",
+   3442
+  ]
+ ],
+ "smallest_lt_300": [
+  [
+   "未命名 1.md",
+   0
+  ],
+  [
+   "未命名.md",
+   0
+  ],
+  [
+   "欢迎.md",
+   111
+  ],
+  [
+   "90-System/Templates/chat-summary.md",
+   160
+  ],
+  [
+   "90-System/Templates/prompt.md",
+   162
+  ],
+  [
+   "90-System/Templates/knowledge-card.md",
+   169
+  ],
+  [
+   "90-System/Templates/project.md",
+   173
+  ],
+  [
+   "90-System/Templates/decision.md",
+   176
+  ],
+  [
+   "90-System/Templates/source-note.md",
+   196
+  ],
+  [
+   "90-System/Indexes/Prompt Index.md",
+   236
+  ]
+ ]
+}

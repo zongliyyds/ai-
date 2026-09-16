@@ -1,0 +1,12 @@
+# VaultMind 依赖（刻意零 torch / 零 langchain / 零向量数据库）
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+jieba==0.42.1
+scikit-learn==1.6.1
+numpy==2.4.6
+pandas==3.0.3
+PyMuPDF==1.27.2.3
+httpx
+python-dotenv
+pytest

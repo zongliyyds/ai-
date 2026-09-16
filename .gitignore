@@ -1,0 +1,25 @@
+# 派生数据与模型
+data/
+models/
+*.db
+*.sqlite3
+*.npy
+*.npz
+
+# 环境
+.venv/
+__pycache__/
+*.pyc
+.env
+*.egg-info/
+
+# 私密样例（脱敏样例单独提交）
+sample_data/*.raw.md
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 工具残留
+.dsh-vision-toolkit/
+
