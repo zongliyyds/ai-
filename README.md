@@ -5,8 +5,8 @@
 
 ## 当前状态
 
-🟡 已立项：可行性评估完成、工作区建立（`D:\RAG`）、基线体检数据就绪。
-下一步：M0/M1 数据管道实现。
+🟢 M1 完成：数据管道 + 体检报告（数字与基线逐项一致）；M2 检索 v1 进行中（FTS5 BM25 + bge-m3 向量 + RRF）。
+下一步：M2 验收（10 问自查 ≥ 8/10）→ M3 评测集。
 
 ## 核心特性
 
@@ -37,6 +37,10 @@ Python 3.13 · FastAPI · SQLite(FTS5) · jieba · numpy/scikit-learn · Ollama(
 pip install -r requirements.txt
 # 重建索引（只读扫描知识库）
 python -m vaultmind.ingest
+# 构建向量索引（bge-m3，需先 ollama serve；断点续跑）
+python -m vaultmind.search --build-vectors
+# 检索调试（bm25 / vector / hybrid RRF 融合）
+python -m vaultmind.search "SQLite FTS5 中文分词怎么配置" --top 5 --mode hybrid
 # 跑评测
 python -m vaultmind.eval
 # 启动服务

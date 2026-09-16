@@ -125,6 +125,8 @@ ollama list
 
 # 项目
 D:\python\python.exe -m vaultmind.ingest          # 只读扫描 + 重建索引
+D:\python\python.exe -m vaultmind.search --build-vectors   # 全量向量化（bge-m3，断点续跑）
+D:\python\python.exe -m vaultmind.search "问题" --top 5 --mode hybrid   # 检索调试
 D:\python\python.exe -m vaultmind.eval            # 跑评测
 D:\python\python.exe -m uvicorn vaultmind.api.main:app --reload
 D:\python\python.exe -m pytest                    # 测试

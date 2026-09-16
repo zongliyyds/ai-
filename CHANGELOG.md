@@ -9,6 +9,19 @@
 - **验证结果**：`ollama serve` + `ollama list` 正确识别 `qwen2.5-coder:7b`（4.7 GB）；迁移前后 6 个文件 / 4,683,088,419 字节逐字节一致；C 盘释放约 4.7 GB。
 - **交付物**：`docs/Ollama本地模型迁移工作流.pdf`、`scripts/make_migration_pdf.py`。
 
+## 2026-09-16 · M2 检索 v1（W1 全部里程碑收官）
+
+- **做了什么**：`vaultmind/retrieval`（bm25 / vector / fusion + `search()` 统一接口）+ search CLI（`--build-vectors` / `--mode bm25|vector|hybrid`）；bge-m3 全量向量化 1,237 chunks（87s，断点续跑，L2 归一化，`data/embeddings.npy` + `chunk_ids.json`）；查询侧停用词过滤；自查表生成器 `scripts/m2_selfcheck.py`。
+- **验证结果**：pytest **22/22 通过**；10 问自查：bm25 **9/10**、vector **10/10**、hybrid **9/10**（达标线 8/10，✅）；发现并记录「RRF 融合稀释单路强信号」案例（Q1）作为 M6 消融素材。
+- **交付物**：`vaultmind/retrieval/*`、`vaultmind/search.py`、`tests/test_retrieval.py`、`reports/m2_selfcheck.md`、`scripts/m2_selfcheck.py`。
+- **遗留与下一步**：待人工抽查 3~5 问签字验收；W2 开工 **M3 评测集（gold 60 条，人工定稿）+ M4 生成链路（引用/拒答）**。
+
+## 2026-09-16 · 环境准备补录：模型拉取完成（M2 前置）
+
+- **做了什么**：后台拉取 `bge-m3`（1.2 GB）与 `qwen2.5:7b-instruct`（4.7 GB），自动存入 `D:\本地模型`；验证 bge-m3 embedding 接口（1024 维，首次加载 23.5s）。
+- **验证结果**：`ollama list` 显示 3 个模型齐全；Ollama 启动日志确认 CUDA0=RTX 4050 6GB 接管、`OLLAMA_MODELS` 生效。
+- **交付物**：模型本体（`D:\本地模型`，不入库）。
+
 ## 2026-09-16 · M1 数据管道 + 知识库体检（W1）
 
 - **做了什么**：`vaultmind` 包落地（config / scanner / auditor / chunker / indexer / report + CLI）；一条命令 `D:\python\python.exe -m vaultmind.ingest` 完成 扫描→体检→分块→索引→报告；SQLite 索引库（docs / chunks / links + FTS5 jieba 分词）；三层防线测试骨架（tests/：冒烟 + 基线探针 + 分块单测）；pre-commit 钩子（提交前跑基线探针）。
