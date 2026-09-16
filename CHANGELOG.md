@@ -3,6 +3,13 @@
 > 约定：每个节点验收通过后追加一条；格式：`日期 · 节点 | 做了什么 | 验证结果 | 遗留与下一步`。
 > AI 会话开工必读本文件 + `PLAN.md`；节点收尾必须回来追加。
 
+## 2026-09-16 · M7 工程化 / 求职转化（W4 主线，AI 侧全部交付）
+
+- **做了什么**：README 重写（指标表/架构图/换机复现/红线）+ `docs/简历bullet.md`（AI 应用开发 + AI 数据分析两套，数字全部标 reports 出处）+ `docs/Q&A预案.md`（11 问 + 数字速查表）+ `scripts/env_check.py`（13 项环境体检）+ `scripts/package_repo.py`（白名单打包 + 红线探针：文件名/手机号/摘录文件/gold 字段四道扫描）+ `scripts/make_interview_pdf.py` → **《面试答辩手册 PDF》6 页（终期交付物）** + `docs/求职收尾清单.md`（GitHub 发布/录屏 7 幕/面试自检）；文档一致性探针 `tests/test_repo_docs.py`（README/简历/Q&A 数字与 reports 精确比对）。
+- **验证结果**：pytest **56/56**；env_check 13/13 PASS；打包 12.4MB zip 红线探针通过（无 Vault 内容/无手机号/gold 已脱敏）；PDF 程序化验收（6 页、文本层含 0.8167/0.7010/0.7339）。过程修复：①TextWriter.append 无 color 参数 → 按颜色多 writer（已记录坑）；②`test_smoke.py` 全管道重写 tracked 体检报告致时间戳污染 → `run_pipeline(report_out=)` 重定向临时路径；③env_check 模型名冒号截断。
+- **交付物**：上述全部 + 知识卡片草稿《开源打包红线：白名单与探针自动化》。
+- **遗留与下一步**：**用户侧动作**（`docs/求职收尾清单.md`）：GitHub 发布（直连失败用 gh-proxy 镜像）、3 分钟录屏（7 幕脚本）、简历贴 bullet。AI 侧剩余 = W4 追加实验：M6b 分块粒度消融、本地 vs 云端成本/延迟、联网模块 B/C 的 S1 Bing 解析探测。
+
 ## 2026-09-16 · M6 六组消融实验（W3 第二块完成 → W3 收官）
 
 - **做了什么**：消融基建（`rerank.py` 标题加权 / `expand.py` 双链 1-hop / `rewrite.py` 规则+LLM 改写 / `search()` 扩展参数 `rrf_k`/`rerank`/`expand_links` 默认=基线行为 / `vector.search_vector(frac=)`）+ `scripts/m6_ablation.py` 总控（六组实验×同一 60 条 gold，LLM 改写带缓存）+ `reports/ablation.md`（数据驱动结论自动插值，重跑可复现）。

@@ -13,8 +13,12 @@ def run_audit_only(root=None) -> dict:
     return auditor.audit(docs, root)
 
 
-def run_pipeline(root=None, build_index=True) -> dict:
-    """完整管道。返回 docs/metrics/chunks/stats。"""
+def run_pipeline(root=None, build_index=True, report_out=None) -> dict:
+    """完整管道。返回 docs/metrics/chunks/stats。
+
+    report_out：报告输出路径（默认 reports/audit_report.md；测试请传临时路径，
+    避免时间戳污染 tracked 报告）。
+    """
     t0 = time.time()
     docs = scanner.scan_docs(root)
     metrics = auditor.audit(docs, root)
@@ -25,5 +29,5 @@ def run_pipeline(root=None, build_index=True) -> dict:
     AUDIT_JSON.parent.mkdir(parents=True, exist_ok=True)
     with open(AUDIT_JSON, "w", encoding="utf-8") as f:
         json.dump(metrics, f, ensure_ascii=False, indent=1)
-    report.write_audit_report(metrics, stats)
+    report.write_audit_report(metrics, stats, out=report_out)
     return {"docs": docs, "metrics": metrics, "chunks": chunks, "stats": stats}

@@ -17,9 +17,11 @@ def test_scan_readonly():
         assert d.rel, "每个文档都应有相对路径"
 
 
-def test_full_pipeline_rebuild():
-    """一条命令重建索引：docs/chunks/links/FTS5 全部写入 data/。"""
-    res = run_pipeline()
+def test_full_pipeline_rebuild(tmp_path):
+    """一条命令重建索引：docs/chunks/links/FTS5 全部写入 data/。
+    报告输出重定向到临时路径，避免时间戳污染 tracked 的 reports/audit_report.md。
+    """
+    res = run_pipeline(report_out=tmp_path / "audit_report.md")
     s, m = res["stats"], res["metrics"]
     assert m["doc_count"] >= 150
     assert s["docs"] == m["doc_count"]

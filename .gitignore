@@ -1,6 +1,7 @@
 # 派生数据与模型
 data/
 models/
+dist/
 *.db
 *.sqlite3
 *.npy

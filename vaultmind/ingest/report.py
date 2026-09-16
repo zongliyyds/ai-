@@ -23,7 +23,8 @@ def _md_table(headers, rows):
     return "\n".join(lines)
 
 
-def write_audit_report(metrics, stats=None):
+def write_audit_report(metrics, stats=None, out=None):
+    out = out or AUDIT_REPORT
     baseline = None
     if BASELINE_JSON.exists():
         try:
@@ -143,6 +144,6 @@ def write_audit_report(metrics, stats=None):
     A("> 治理前后对比（覆盖率、死链率、孤儿数）将作为 AI 数据分析方向的可视化素材。")
     A("")
 
-    AUDIT_REPORT.parent.mkdir(parents=True, exist_ok=True)
-    AUDIT_REPORT.write_text("\n".join(L) + "\n", encoding="utf-8")
-    return str(AUDIT_REPORT)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("\n".join(L) + "\n", encoding="utf-8")
+    return str(out)
