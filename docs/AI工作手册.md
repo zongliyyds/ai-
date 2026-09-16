@@ -113,7 +113,8 @@ D:\RAG\docs\立项书-详细版.md      ← 完整设计（按需）
 | PDF 库 | PyMuPDF 1.27.2.3 两坑：①`insert_text` 传 .ttc 字体崩溃（用 TextWriter + fitz.Font）②`write_text` 后其他已存在页面句柄失效（图形先画完再写文本；跨页页脚用两遍渲染：第一遍数页数，第二遍带页码输出） |
 | 网络 | HuggingFace ❌ → 用 ModelScope；GitHub 直连超时 → gh-proxy.com 镜像；PyPI ✅ |
 | 硬件 | RTX 4050 Laptop 6GB + 32GB 内存；C 盘剩 47GB（勿放模型）、D 盘剩 ~133GB |
-| 模型 | 现有 qwen2.5-coder:7b；待 pull：bge-m3（~1.2GB）、qwen2.5:7b-instruct（~4.7GB） |
+| 模型 | 已齐：bge-m3（embedding）+ qwen2.5:7b-instruct（生成）+ qwen2.5-coder:7b，均在 `D:\本地模型` |
+| 服务/bat | 双击 bat 秒退的常见根因=端口被后台服务占用（uvicorn 报错即关窗）；bat 必须做端口检测+失败不秒退；服务探活 `curl.exe -s http://127.0.0.1:8000/health`、Ollama 探活 `curl.exe -s http://127.0.0.1:11434/api/tags`（exit 7=掉线） |
 
 ## 8. 常用命令速查
 
