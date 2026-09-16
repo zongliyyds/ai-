@@ -3,12 +3,19 @@
 > 约定：每个节点验收通过后追加一条；格式：`日期 · 节点 | 做了什么 | 验证结果 | 遗留与下一步`。
 > AI 会话开工必读本文件 + `PLAN.md`；节点收尾必须回来追加。
 
+## 2026-09-16 · M4 生成链路（W2 全部收官）
+
+- **做了什么**：`vaultmind/llm/`（context 上下文组装 [S#]：每文档≤2 块/6000 字符预算/编号只分配给保留块；generator Ollama qwen2.5:7b-instruct 本地生成；validator 引用校验+拒答话术判定，纯函数）+ `vaultmind/ask.py` CLI（`--context-only`/`--json`）；离线探针 `tests/test_generation.py`（6 条）；在线冒烟 `scripts/m4_smoke.py`（2 库内 + 2 超纲）；pre-commit 钩子纳入 M4 探针；范围界定：查询改写不归 M4、归 M6 消融（防破坏 M3 基线可复现）。
+- **验证结果**：pytest **32/32**；冒烟 **4/4 PASS**——库内 2 问引用可追溯（非法编号=0）、超纲 2 问拒答（比特币/迪士尼票价，拒答时诚实列举 S1..S8 均无关）；端到端 13~17s（生成 8~15s，首问冷加载 67s）；踩坑并修复：模型输出 `[S1, S2, S4]` 列表式引用 → validator 正则支持（含 `【S1】`、`[S 3]` 变异）。
+- **交付物**：`vaultmind/llm/*`、`vaultmind/ask.py`、`tests/test_generation.py`、`scripts/m4_smoke.py`、`docs/工单-M4-生成链路.md`、`reports/m4_smoke.md`。
+- **遗留与下一步**：W2 收官 → **W3 M5 产品层**（FastAPI 问答接口 + Web 页面 + 引用可跳转回原笔记 + 分析看板）→ M6 六组消融。
+
 ## 2026-09-16 · M3 gold 定稿 + 正式基线（W2 第一块完成）
 
 - **做了什么**：gold 定稿器 `scripts/finalize_gold.py`（参考业界做法：候选池即"池"、不用 LLM 生成问题；按库目录×难度 14 层分层抽样、比例配额、每层≥1、单文档≤3、问题文本全局唯一、seed=42 可复现）；60 条 approved → `eval/gold_set.jsonl`；8 道校验闸门（含"gold 目标 ↔ 已索引 chunk"可追溯率 100%）；正式基线；工单 M3 更新 + W4 联网模块设计文档。
 - **验证结果**：pytest **26/26**；基线 60 条 hybrid：Recall@1=0.6167 / **Recall@5=0.8167** / Recall@10=0.8333 / **MRR=0.7010** / **nDCG@10=0.7339** / 平均延迟 0.866s —— 三项目标值（≥0.80 / ≥0.65 / ≥0.70）**全部达标**。坏例账本：11 题未进 Top-5（10 题为"裸标题"hard 型、1 题 easy），已列 M6 查询改写/重排消融素材。
 - **交付物**：`scripts/finalize_gold.py`、`eval/gold_set.jsonl`（60 approved，SHA-256 7057c373…）、`reports/gold_finalization.md`（方法+文献+清单）、`reports/baseline.md`、`docs/工单-W4-联网采集与保鲜模块.md`。
-- **遗留与下一步**：**M4 生成链路**（查询改写 → 上下文组装 `[S#]` 引用 → qwen2.5:7b-instruct 生成 → 引用校验 + 超纲拒答）。
+- **遗留与下一步**：~~M4 生成链路~~（已完成，见上方条目；查询改写归 M6 消融）。
 
 ## 2026-09-16 · W4 联网采集与保鲜模块设计定稿
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-# VaultMind pre-commit 钩子：只跑快速探针（基线数字 + 分块单测），防止坏提交入库。
+# VaultMind pre-commit 钩子：只跑快速探针（基线数字 + 分块单测 + M4 纯函数），防止坏提交入库。
 # 完整管道（含 jieba 索引重建）手动跑：D:/python/python.exe -m pytest -q
 cd "$(git rev-parse --show-toplevel)" || exit 1
-"D:/python/python.exe" -m pytest -q tests/test_baseline.py tests/test_chunker.py
+"D:/python/python.exe" -m pytest -q tests/test_baseline.py tests/test_chunker.py tests/test_generation.py
