@@ -9,6 +9,13 @@
 - **验证结果**：`ollama serve` + `ollama list` 正确识别 `qwen2.5-coder:7b`（4.7 GB）；迁移前后 6 个文件 / 4,683,088,419 字节逐字节一致；C 盘释放约 4.7 GB。
 - **交付物**：`docs/Ollama本地模型迁移工作流.pdf`、`scripts/make_migration_pdf.py`。
 
+## 2026-09-16 · M1 数据管道 + 知识库体检（W1）
+
+- **做了什么**：`vaultmind` 包落地（config / scanner / auditor / chunker / indexer / report + CLI）；一条命令 `D:\python\python.exe -m vaultmind.ingest` 完成 扫描→体检→分块→索引→报告；SQLite 索引库（docs / chunks / links + FTS5 jieba 分词）；三层防线测试骨架（tests/：冒烟 + 基线探针 + 分块单测）；pre-commit 钩子（提交前跑基线探针）。
+- **验证结果**：审计数字与 `baseline_audit.json` 逐项一致（154 篇 / 276,977 字符 / 922 H2 / 409 出链 / 29 死链 / 孤儿 25）；pytest 12/12 通过（1.52s）；FTS5 中文检索探针命中；索引产出 1,237 chunks / 409 links，全管道 1.2s。
+- **交付物**：`vaultmind/` 包、`reports/audit_report.md`、`data/audit.json` + `data/vaultmind.db`（gitignore）、`tests/`×4、`scripts/hooks/pre-commit`。
+- **遗留与下一步**：M2 检索 v1（FTS5 已可用，待接向量 + RRF 融合）；开工前首次手动准备：`ollama serve` 后 `ollama pull bge-m3`（~1.2 GB）、`ollama pull qwen2.5:7b-instruct`（~4.7 GB）。
+
 ## 2026-09-16 · 协作体系建立（M0 前置）
 
 - **做了什么**：建立 AI 协作工作手册 `docs/AI工作手册.md`（四步法 + 工单模板 + 红线 + 坑位表 + 命令速查 + 知识沉淀约定）；建立本 CHANGELOG 作为进度档案；知识沉淀至 Mnemon 文档空间与记忆空间。

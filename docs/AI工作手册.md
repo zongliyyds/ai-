@@ -143,5 +143,6 @@ git add -A; git commit -m "M2: 检索 v1"
 ## 10. 快照与回滚
 
 - 每个节点验收通过后 `git commit`（可回退的进度快照）。
+- 提交前 pre-commit 钩子自动跑快速探针（基线数字一致性 + 分块单测，见 `scripts/hooks/pre-commit`），坏提交会被当场拦住。
 - 模型/索引等大文件不入库：索引在 `data/`（gitignore），模型在 `D:\本地模型`。
 - 换机复现：按 `README.md` 重装依赖 + 重建索引；模型按 `PLAN.md` §5 拉取（自动存入 `D:\本地模型`）。
