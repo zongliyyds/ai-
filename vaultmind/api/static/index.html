@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VaultMind · 个人知识库 RAG 问答</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--line:#334155;--text:#e2e8f0;--dim:#94a3b8;--accent:#38bdf8;--ok:#34d399;--bad:#f87171;--warn:#fbbf24}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI","Microsoft YaHei",sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:14px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:18px;margin:0}
+header .sub{color:var(--dim);font-size:12px}
+.tabs{display:flex;gap:8px;margin-left:auto}
+.tabs button{background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:8px;padding:6px 14px;cursor:pointer}
+.tabs button.on{background:var(--accent);color:#082f49;border-color:var(--accent);font-weight:600}
+main{max-width:960px;margin:0 auto;padding:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:16px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=text]{flex:1;min-width:240px;background:#0b1220;border:1px solid var(--line);border-radius:8px;color:var(--text);padding:10px 12px;font-size:14px}
+select,button.act{background:#0b1220;border:1px solid var(--line);border-radius:8px;color:var(--text);padding:10px 12px;font-size:14px;cursor:pointer}
+button.act{background:var(--accent);color:#082f49;border-color:var(--accent);font-weight:600}
+button.act:disabled{opacity:.5;cursor:wait}
+#spinner{color:var(--dim);font-size:13px;margin:10px 0;display:none}
+#spinner.on{display:block}
+.answer{white-space:pre-wrap;line-height:1.7;font-size:15px;margin:12px 0;background:#0b1220;border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.answer a.cite{color:var(--accent);text-decoration:none;font-weight:700;padding:0 2px}
+.answer a.cite:hover{text-decoration:underline}
+.meta{color:var(--dim);font-size:12px;margin:8px 0}
+ul.cites{list-style:none;padding:0;margin:10px 0}
+ul.cites li{border-left:3px solid var(--accent);padding:6px 10px;margin:6px 0;background:#0b1220;border-radius:0 8px 8px 0;font-size:13px}
+ul.cites .rel{color:var(--dim);font-size:12px}
+ul.cites .snip{color:var(--dim);font-size:12px;display:block;margin-top:2px}
+a.jump{color:var(--accent);text-decoration:none;margin-left:8px;font-size:12px}
+.feedback{margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.feedback button{background:#0b1220;border:1px solid var(--line);border-radius:8px;color:var(--text);padding:6px 12px;cursor:pointer}
+.feedback button.sel-good{background:var(--ok);color:#052e1b;border-color:var(--ok)}
+.feedback button.sel-bad{background:var(--bad);color:#3b0a0a;border-color:var(--bad)}
+#fbnote{color:var(--dim);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.stat{background:#0b1220;border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+.stat .v{font-size:20px;font-weight:700}
+.stat .k{color:var(--dim);font-size:12px;margin-top:4px}
+.metric{margin:14px 0}
+.metric .name{font-size:13px;margin-bottom:4px}
+.metric .name b{color:var(--accent)}
+.bar{position:relative;background:#0b1220;border:1px solid var(--line);border-radius:6px;height:20px;overflow:hidden}
+.bar .fill{height:100%;border-radius:5px 0 0 5px}
+.bar .tick{position:absolute;top:0;bottom:0;width:2px;background:var(--warn)}
+.bar .lbl{position:absolute;right:6px;top:0;line-height:20px;font-size:12px;color:var(--text)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+th{color:var(--dim);font-weight:600}
+.tag{display:inline-block;border-radius:6px;padding:1px 8px;font-size:12px}
+.tag.ok{background:#052e1b;color:var(--ok)}
+.tag.bad{background:#3b0a0a;color:var(--bad)}
+.note{color:var(--dim);font-size:12px;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧠 VaultMind</h1>
+  <span class="sub">个人知识库 RAG 问答 · 本地模型（bge-m3 + qwen2.5:7b-instruct）· 只读知识库</span>
+  <div class="tabs">
+    <button id="tab-qa" class="on" onclick="showTab('qa')">问答</button>
+    <button id="tab-dash" onclick="showTab('dash')">分析看板</button>
+  </div>
+</header>
+<main>
+  <section id="panel-qa">
+    <div class="card">
+      <div class="row">
+        <input type="text" id="q" placeholder="问我知识库里的任何事，例如：CET-4 项目用了什么去重方案？">
+        <select id="mode"><option value="hybrid">hybrid 融合</option><option value="bm25">BM25 关键词</option><option value="vector">向量语义</option></select>
+        <select id="topk"><option>4</option><option selected>8</option><option>12</option></select>
+        <button class="act" id="askbtn" onclick="ask()">提问</button>
+      </div>
+      <div id="spinner">⏳ 检索 + 本地生成中（7B 模型约 10~20 秒）…</div>
+      <div id="result"></div>
+    </div>
+  </section>
+
+  <section id="panel-dash" style="display:none">
+    <div class="card"><h3>📚 知识库规模与健康度（直连索引库）</h3><div class="grid" id="stats"></div>
+      <div class="note">数字实时查询 data/vaultmind.db，与索引库一致。</div></div>
+    <div class="card"><h3>📈 检索基线 vs 立项目标（reports/baseline.md）</h3><div id="metrics"></div>
+      <div class="note">gold 60 条 · hybrid 模式 · 复现命令：D:\python\python.exe -m vaultmind.eval</div></div>
+    <div class="card"><h3>🩺 坏例账本（未进 Top-5 · M6 消融靶子）</h3>
+      <table><thead><tr><th>id</th><th>问题</th><th>首中排名</th><th>延迟</th></tr></thead><tbody id="badcases"></tbody></table></div>
+  </section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+function esc(s){return (s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function showTab(t){
+  $("tab-qa").classList.toggle("on",t==="qa");$("tab-dash").classList.toggle("on",t==="dash");
+  $("panel-qa").style.display=t==="qa"?"":"none";$("panel-dash").style.display=t==="dash"?"":"none";
+  if(t==="dash")loadDash();
+}
+async function ask(){
+  const q=$("q").value.trim();if(!q)return;
+  $("askbtn").disabled=true;$("spinner").classList.add("on");$("result").innerHTML="";
+  try{
+    const r=await fetch("/ask",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({query:q,mode:$("mode").value,top_k:parseInt($("topk").value)})});
+    const d=await r.json();
+    if(!r.ok){$("result").innerHTML='<div class="answer">'+(d.detail?JSON.stringify(d.detail):"请求失败")+'</div>';return}
+    renderAnswer(d);
+  }catch(e){$("result").innerHTML='<div class="answer">错误：'+esc(String(e))+'</div>'}
+  finally{$("askbtn").disabled=false;$("spinner").classList.remove("on")}
+}
+function renderAnswer(d){
+  let html='';
+  // 回答：先转义再注入可点击引用
+  let ans=esc(d.answer).replace(/\[S(\d+)\]/g,'<a class="cite" href="#cit-$1">[S$1]</a>');
+  html+='<div class="answer">'+ans+'</div>';
+  const v=d.validation||{};
+  html+='<div class="meta">引用编号 '+JSON.stringify(v.cited_ids)+' ｜ 非法编号 '+JSON.stringify(v.invalid_ids)+
+        ' ｜ 拒答 '+(d.refusal?"是":"否")+' ｜ 端到端 '+d.latency_s+'s（生成 '+d.generation_s+'s）'+
+        ' ｜ 检索模式 '+d.mode+'</div>';
+  if((d.citations||[]).length){
+    html+='<b>引用清单（点击打开原笔记）</b><ul class="cites">';
+    for(const c of d.citations){
+      html+='<li id="cit-'+c.num+'">[S'+c.num+'] <b>'+esc(c.title)+'</b>（'+esc(c.section)+'）'+
+        '<a class="jump" href="'+esc(c.link)+'">📓 Obsidian 打开</a>'+
+        '<span class="rel">'+esc(c.rel)+'</span>'+
+        '<span class="snip">'+esc(c.snippet)+'</span></li>';
+    }
+    html+='</ul>';
+    html+='<div class="feedback">反馈：<button onclick="fb('+d.row_id+',1)">👍 回答正确</button>'+
+      '<button onclick="fb('+d.row_id+',-1)">👎 有问题</button> '+
+      '<select id="fbcat"><option value="">（坏例四分类，可选）</option>'+
+      '<option>检索漏召</option><option>上下文缺失</option><option>生成幻觉</option><option>问题超纲</option></select>'+
+      '<span id="fbnote"></span></div>';
+  }
+  $("result").innerHTML=html;
+}
+async function fb(row,rating){
+  const cat=$("fbcat")?$("fbcat").value:"";
+  const r=await fetch("/feedback",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({row_id:row,rating:rating,category:cat})});
+  const d=await r.json();
+  $("fbnote").textContent=d.ok?"已记录 ✅（归因数据已入 qa_logs）":"记录失败";
+}
+async function loadDash(){
+  const [s,m,b]=await Promise.all([fetch("/stats"),fetch("/metrics"),fetch("/badcases")]);
+  const st=await s.json(),mt=await m.json(),bc=await b.json();
+  $("stats").innerHTML=[["笔记","docs"],["总字符","chars"],["H2 小节","h2"],["Chunks","chunks"],
+    ["双链","links"],["死链","dead_links"],["FTS 行","fts_rows"],["问答日志","qa_logs"]]
+    .map(([k,key])=>'<div class="stat"><div class="v">'+(st[key]??"-")+'</div><div class="k">'+k+'</div></div>').join("");
+  let mh='';
+  for(const [key,label] of [["recall@5","Recall@5"],["mrr","MRR"],["ndcg@10","nDCG@10"]]){
+    const it=mt[key];if(!it)continue;
+    const pct=Math.min(100,it.value/it.target*100);
+    const good=it.pass;
+    mh+='<div class="metric"><div class="name"><b>'+label+'</b> = '+it.value.toFixed(4)+' ｜ 目标 ≥ '+it.target+
+        ' <span class="tag '+(good?"ok":"bad")+'">'+(good?"达标":"未达标")+'</span></div>'+
+        '<div class="bar"><div class="fill" style="width:'+pct+'%;background:'+(good?"var(--ok)":"var(--bad)")+'"></div>'+
+        '<div class="tick" style="left:100%"></div><div class="lbl">'+it.value.toFixed(4)+'</div></div></div>';
+  }
+  $("metrics").innerHTML=mh||'<div class="note">基线报告缺失，先跑 python -m vaultmind.eval</div>';
+  $("badcases").innerHTML=(bc.items||[]).map(b=>'<tr><td>'+esc(b.id)+'</td><td>'+esc(b.question)+
+    '</td><td>'+(b.first_rank??"-")+'</td><td>'+esc(b.latency)+'s</td></tr>').join("")||
+    '<tr><td colspan="4">无坏例</td></tr>';
+}
+</script>
+</body>
+</html>

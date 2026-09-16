@@ -3,12 +3,19 @@
 > 约定：每个节点验收通过后追加一条；格式：`日期 · 节点 | 做了什么 | 验证结果 | 遗留与下一步`。
 > AI 会话开工必读本文件 + `PLAN.md`；节点收尾必须回来追加。
 
+## 2026-09-16 · M5 产品层（W3 第一块完成）
+
+- **做了什么**：`vaultmind/api`（FastAPI：/health /search /ask /stats /metrics /badcases /feedback；`qa_logs` 表落库（派生产物，问答日志+四分类反馈）；引用 `obsidian://` 跳转原笔记）+ 零依赖静态 Web 问答页与分析看板（CSS 条形图，不引 CDN——本机境外 CDN 多不可达，换机可用优先）+ `run_api.bat` 一键启动 + `tests/test_api.py`（12 条离线探针）+ `scripts/m5_smoke.py`。
+- **验证结果**：pytest **44/44**；在线冒烟 **6/6 PASS**——/health、问答页 HTML、/stats 与 DB 一致（docs=154/chunks=1237/links=409）、/metrics 与 baseline.md 精确一致且三项达标、/badcases=11、**/ask 真模型一问 13.6s 答对「TF-IDF+同分类约束」且非法引用=0**；期间 Ollama serve 会话间掉线（curl exit 7）已重启恢复。
+- **交付物**：`vaultmind/api/*`、`vaultmind/api/static/index.html`、`tests/test_api.py`、`scripts/m5_smoke.py`、`run_api.bat`、`docs/工单-M5-产品层.md`。
+- **遗留与下一步**：人工验收（浏览器 `http://127.0.0.1:8000`：问答/引用跳转/看板/反馈）→ **M6 六组消融**（查询改写/重排/权重/分块粒度/RRF 稀释案例/规模曲线）→ `reports/ablation.md`。
+
 ## 2026-09-16 · M4 生成链路（W2 全部收官）
 
 - **做了什么**：`vaultmind/llm/`（context 上下文组装 [S#]：每文档≤2 块/6000 字符预算/编号只分配给保留块；generator Ollama qwen2.5:7b-instruct 本地生成；validator 引用校验+拒答话术判定，纯函数）+ `vaultmind/ask.py` CLI（`--context-only`/`--json`）；离线探针 `tests/test_generation.py`（6 条）；在线冒烟 `scripts/m4_smoke.py`（2 库内 + 2 超纲）；pre-commit 钩子纳入 M4 探针；范围界定：查询改写不归 M4、归 M6 消融（防破坏 M3 基线可复现）。
 - **验证结果**：pytest **32/32**；冒烟 **4/4 PASS**——库内 2 问引用可追溯（非法编号=0）、超纲 2 问拒答（比特币/迪士尼票价，拒答时诚实列举 S1..S8 均无关）；端到端 13~17s（生成 8~15s，首问冷加载 67s）；踩坑并修复：模型输出 `[S1, S2, S4]` 列表式引用 → validator 正则支持（含 `【S1】`、`[S 3]` 变异）。
 - **交付物**：`vaultmind/llm/*`、`vaultmind/ask.py`、`tests/test_generation.py`、`scripts/m4_smoke.py`、`docs/工单-M4-生成链路.md`、`reports/m4_smoke.md`。
-- **遗留与下一步**：W2 收官 → **W3 M5 产品层**（FastAPI 问答接口 + Web 页面 + 引用可跳转回原笔记 + 分析看板）→ M6 六组消融。
+- **遗留与下一步**：~~W3 M5 产品层~~（已完成，见上方条目）→ M6 六组消融。
 
 ## 2026-09-16 · M3 gold 定稿 + 正式基线（W2 第一块完成）
 
