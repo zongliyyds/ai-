@@ -3,6 +3,13 @@
 > 约定：每个节点验收通过后追加一条；格式：`日期 · 节点 | 做了什么 | 验证结果 | 遗留与下一步`。
 > AI 会话开工必读本文件 + `PLAN.md`；节点收尾必须回来追加。
 
+## 2026-09-16 · M3 评测基建（W2 · 进行中，待人工定稿）
+
+- **做了什么**：`vaultmind/eval`（metrics 手写：Recall@1/5/10、MRR、nDCG@10、平均延迟 + runner + CLI）；候选问题生成器 `scripts/gen_candidates.py`（220 条，H2 结构模板化派生，不用 LLM 防自欺）→ `eval/candidates.jsonl` + `reports/candidates_review.md` 人读版；`eval/seed_drafts.py` 播种 20 条 draft；指标探针 `tests/test_eval.py`（已知排序断言精确值）。
+- **验证结果**：pytest **26/26**；评测管道预览跑通（20 条 draft：Recall@5=1.0、MRR=0.975、nDCG@10=0.9815、平均延迟 0.57s——草稿多为含文档名的易题，最终数字以定稿后为准）。
+- **交付物**：`vaultmind/eval/*`、`scripts/gen_candidates.py`、`eval/candidates.jsonl`、`eval/gold_set.jsonl`（20 draft）、`reports/candidates_review.md`、`reports/baseline.md`（预览）。
+- **遗留与下一步**：**用户人工定稿 60 条 gold**（操作流程见 `docs/工单-M3-评测集.md` §5）；定稿后跑正式基线；随后 M4 生成链路（引用/拒答）。
+
 ## 2026-09-16 · 环境准备（开工前，M0 前置）
 
 - **做了什么**：Ollama 模型库从 C 盘迁至 `D:\本地模型`；写入用户级环境变量 `OLLAMA_MODELS=D:\本地模型`；删除旧目录 `C:\Users\Administrator\.ollama\models`。
