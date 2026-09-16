@@ -3,6 +3,13 @@
 > 约定：每个节点验收通过后追加一条；格式：`日期 · 节点 | 做了什么 | 验证结果 | 遗留与下一步`。
 > AI 会话开工必读本文件 + `PLAN.md`；节点收尾必须回来追加。
 
+## 2026-09-16 · M6 六组消融实验（W3 第二块完成 → W3 收官）
+
+- **做了什么**：消融基建（`rerank.py` 标题加权 / `expand.py` 双链 1-hop / `rewrite.py` 规则+LLM 改写 / `search()` 扩展参数 `rrf_k`/`rerank`/`expand_links` 默认=基线行为 / `vector.search_vector(frac=)`）+ `scripts/m6_ablation.py` 总控（六组实验×同一 60 条 gold，LLM 改写带缓存）+ `reports/ablation.md`（数据驱动结论自动插值，重跑可复现）。
+- **验证结果**：pytest **50/50**；**基线复现闸门通过**（hybrid 行与官方 0.8167/0.7010/0.7339 精确一致）。结论：①三路单拆——融合 R@5 +0.05 正增益，但 R@1=0.6167 低于纯向量 0.6667（量化「顶部稀释」）；②RRF k∈{20,60,100} 不敏感；③查询改写负结果（规则 -0.017 / LLM -0.067，hard 档一路下降）→ 不上线；④标题重排混合（easy 1.0000 / hard 0.3750）→ 需条件化；⑤1-hop 中性（+0.0000）→ 转「相关笔记推荐」；⑥规模曲线：25%→100% 语料 290→286ms 持平，瓶颈=查询侧 embedding，暴力点积 <1ms → **零向量库决策被数据验证**；bm25 仅 ~3ms。
+- **交付物**：`vaultmind/retrieval/rerank.py`、`expand.py`、`vaultmind/llm/rewrite.py`、`tests/test_ablation.py`（6 探针）、`scripts/m6_ablation.py`、`reports/ablation.md`、`docs/工单-M6-消融实验.md`、`eval/rewrites_cache.json`。
+- **遗留与下一步**：W3 收官；分块粒度消融（M6b）列 W4 追加实验。→ **W4：M7 工程化/求职转化**（GitHub 仓库 + README 指标表 + 录屏 + 两套简历 bullet + Q&A 预案 + **《面试答辩手册 PDF》终期交付物**）+ W4 追加实验（M6b 分块粒度、2-hop、本地 vs 云端、联网模块 S1 Bing 探测）。
+
 ## 2026-09-16 · M5 产品层（W3 第一块完成）
 
 - **做了什么**：`vaultmind/api`（FastAPI：/health /search /ask /stats /metrics /badcases /feedback；`qa_logs` 表落库（派生产物，问答日志+四分类反馈）；引用 `obsidian://` 跳转原笔记）+ 零依赖静态 Web 问答页与分析看板（CSS 条形图，不引 CDN——本机境外 CDN 多不可达，换机可用优先）+ `run_api.bat` 一键启动 + `tests/test_api.py`（12 条离线探针）+ `scripts/m5_smoke.py`。

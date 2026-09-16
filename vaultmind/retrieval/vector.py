@@ -100,8 +100,12 @@ def load_index() -> tuple[np.ndarray, list[int]]:
     return m, ids
 
 
-def search_vector(query: str, top_k: int = 10) -> list[SearchHit]:
+def search_vector(query: str, top_k: int = 10, frac: float = 1.0) -> list[SearchHit]:
+    """frac：语料切片比例（M6 规模-延迟曲线用，默认 1.0=全量）。"""
     m, ids = load_index()
+    if 0.0 < frac < 1.0:
+        cut = max(1, int(len(m) * frac))
+        m, ids = m[:cut], ids[:cut]
     qvec = _normalize(embed_texts([query]))[0]
     scores = m @ qvec  # 已归一化 → 点积 = cosine
     if top_k >= len(scores):
