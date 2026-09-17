@@ -240,8 +240,12 @@ def last_ingest_secs():
 
 # ---------------------------------------------------------------- 回写锚点
 
-def anchor_edits(base, abl, aud, dbc, pytest_line):
-    """返回 [(文件, 旧串, 新串)]；旧串用正则匹配，保证幂等。"""
+def anchor_edits(base, abl, aud, dbc, pytest_line, metrics_fresh=True):
+    """返回 [(文件, 旧串, 新串)]；旧串用正则匹配，保证幂等。
+
+    metrics_fresh=False（--skip-eval / dry-run）时不回写指标类锚点，
+    只回写语料规模类（那些来自 audit/db，本来就是新的）。
+    """
     docs, chunks, links = dbc
     wan = aud["chars"] / 10000.0
     lat = base.get("latency")
@@ -250,15 +254,18 @@ def anchor_edits(base, abl, aud, dbc, pytest_line):
     def add(path, pattern, new):
         edits.append((path, pattern, new))
 
-    # README
+    # 语料规模（来自 audit/db，永远是新值）
     add("README.md", r"（\d+ 篇笔记 / [\d.]+ 万字 / \d+ 个 H2 / \d+ 条双链）",
         "（%d 篇笔记 / %.1f 万字 / %d 个 H2 / %d 条双链）" % (docs, wan, aud["h2"], aud["links"]))
     add("README.md", r"docs\(\d+\)/chunks\(\d+\)/links\(\d+\)",
         "docs(%d)/chunks(%d)/links(%d)" % (docs, chunks, links))
-    add("README.md", r"\| 平均延迟 \| [\d.]+ s/查询 \|", "| 平均延迟 | %s s/查询 |" % lat)
-    add("README.md", r"\| Recall@1 \| [\d.]+ \|", "| Recall@1 | %s |" % fmt4(base["recall@1"]))
-    add("README.md", r"\| MRR \| \*\*[\d.]+\*\* \|", "| MRR | **%s** |" % fmt4(base["mrr"]))
-    add("README.md", r"\| nDCG@10 \| \*\*[\d.]+\*\* \|", "| nDCG@10 | **%s** |" % fmt4(base["ndcg@10"]))
+
+    # 指标类（仅当基线刚重跑过）
+    if metrics_fresh:
+        add("README.md", r"\| 平均延迟 \| [\d.]+ s/查询 \|", "| 平均延迟 | %s s/查询 |" % lat)
+        add("README.md", r"\| Recall@1 \| [\d.]+ \|", "| Recall@1 | %s |" % fmt4(base["recall@1"]))
+        add("README.md", r"\| MRR \| \*\*[\d.]+\*\* \|", "| MRR | **%s** |" % fmt4(base["mrr"]))
+        add("README.md", r"\| nDCG@10 \| \*\*[\d.]+\*\* \|", "| nDCG@10 | **%s** |" % fmt4(base["ndcg@10"]))
 
     # Q&A 预案
     add("docs/Q&A预案.md", r"（\d+ 篇笔记、[\d.]+ 万字、\d+ 条双链）",
@@ -270,9 +277,10 @@ def anchor_edits(base, abl, aud, dbc, pytest_line):
     if ingest_secs and ingest_secs[0].isdigit():
         add("docs/Q&A预案.md", r"\| [\d,]+ chunks / 全管道 [\d.]+s（\d+ 篇全量重建） \|",
             "| %s chunks / 全管道 %ss（%d 篇全量重建） |" % (format(chunks, ","), ingest_secs, docs))
-    add("docs/Q&A预案.md", r"\| \*\*[\d.]+ / [\d.]+ / [\d.]+\*\*（R@5 / MRR / nDCG@10）",
-        "| **%s / %s / %s**（R@5 / MRR / nDCG@10）"
-        % (fmt4(base["recall@5"]), fmt4(base["mrr"]), fmt4(base["ndcg@10"])))
+    if metrics_fresh:
+        add("docs/Q&A预案.md", r"\| \*\*[\d.]+ / [\d.]+ / [\d.]+\*\*（R@5 / MRR / nDCG@10）",
+            "| **%s / %s / %s**（R@5 / MRR / nDCG@10）"
+            % (fmt4(base["recall@5"]), fmt4(base["mrr"]), fmt4(base["ndcg@10"])))
     add("docs/Q&A预案.md", r"（easy 档 \*\*[\d.]+\*\* / hard 档 \*\*[\d.]+\*\*）",
         "（easy 档 **%s** / hard 档 **%s**）" % (fmt4(abl["easy"]), fmt4(abl["hard"])))
     if abs(abl.get("hop", 0.0)) > 5e-5:
@@ -459,7 +467,9 @@ def main(argv=None) -> int:
     title_easy, title_hard = 1.0000, 0.3750      # E4 标题重排分层（ablation.md 结论段）
     n_tests = count_tests()
     try:
-        edits = anchor_edits(base, abl, aud, db_counts(), None)
+        # --skip-eval 时 baseline.md 未重跑，指标锚点保持原样（否则会用旧值覆盖新值）
+        edits = anchor_edits(base, abl, aud, db_counts(), None,
+                             metrics_fresh=not (args.skip_eval or args.dry_run))
         changes = apply_edits(edits, args.dry_run)
         hit = [c for c in changes if c[1] != "未命中"]
         miss = [c for c in changes if c[1] == "未命中"]
@@ -516,6 +526,8 @@ def finish(run, fp, abl, dry_run, t_start):
 
     if not dry_run:
         write_sync_report(run, fp, abl, dur)
+        if fp:
+            save_state(fp)          # 记住本次指纹，供下次变更检测
     return 1 if run.failed else 0
 
 
