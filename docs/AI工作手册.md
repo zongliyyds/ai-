@@ -136,10 +136,12 @@ ollama pull bge-m3 ; ollama pull qwen2.5:7b-instruct
 ollama list
 
 # 项目
-D:\python\python.exe -m vaultmind.ingest          # 只读扫描 + 重建索引
+D:\python\python.exe scripts\sync_vault.py         # ★ Vault 有新增/改动时的一条命令：重建索引+向量 → 复验 60 条 gold → 重定审计基线 → 回写文档锚点 → 重生 PDF → pytest
+D:\python\python.exe scripts\sync_vault.py --dry-run   # 只看会改什么（无副作用）；--skip-eval 跳过复验；--no-change 无变化也强制执行
+D:\python\python.exe -m vaultmind.ingest          # 只读扫描 + 重建索引（单步）
 D:\python\python.exe -m vaultmind.search --build-vectors   # 全量向量化（bge-m3，断点续跑）
 D:\python\python.exe -m vaultmind.search "问题" --top 5 --mode hybrid   # 检索调试
-D:\python\python.exe -m vaultmind.eval            # 跑评测
+D:\python\python.exe -m vaultmind.eval            # 跑评测（单步）
 D:\python\python.exe launcher.py                  # 启动 Web 服务（=双击 run_api.bat）：探测端口→起服务→等 /health→开浏览器→退出
 D:\python\python.exe launcher.py --stop           # 停止服务（=双击 stop_api.bat）
 D:\python\python.exe launcher.py --no-browser     # 只起服务不开浏览器（自动化用）

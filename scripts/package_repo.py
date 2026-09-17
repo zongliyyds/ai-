@@ -20,13 +20,14 @@ OUT = DIST / ("vaultmind-source-%s.zip" % datetime.now().strftime("%Y%m%d"))
 # 白名单（相对路径；目录递归包含）
 INCLUDE = [
     "README.md", "PLAN.md", "FEASIBILITY.md", "CHANGELOG.md",
-    "requirements.txt", ".gitignore", "run_api.bat", "search.bat",
+    "requirements.txt", ".gitignore",
+    "run_api.bat", "stop_api.bat", "search.bat", "launcher.py",
     "vaultmind/", "tests/", "scripts/",
     "docs/",
 ]
 REPORT_INCLUDE = [  # 报告仅收录不含 Vault 摘录的
     "baseline.md", "ablation.md", "m4_smoke.md", "gold_finalization.md",
-    "audit_report.md", "m2_selfcheck.md",
+    "audit_report.md", "m2_selfcheck.md", "sync_report.md",
 ]
 GOLD_STRIP_FIELDS = ("answer_points",)  # gold 分发版剔除正文摘录
 

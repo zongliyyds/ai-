@@ -3,6 +3,13 @@
 > 约定：每个节点验收通过后追加一条；格式：`日期 · 节点 | 做了什么 | 验证结果 | 遗留与下一步`。
 > AI 会话开工必读本文件 + `PLAN.md`；节点收尾必须回来追加。
 
+## 2026-09-17 · Vault 同步固化为一条命令（scripts/sync_vault.py）
+
+- **做了什么**：把「Vault 增长 → 重建索引 → 重建向量 → 复验 60 条 gold → 重定审计基线 → 回写文档锚点 → 重生 PDF → pytest」这 8 步固化成 `scripts/sync_vault.py`（~63s 一次跑完）。带 Vault 指纹变更检测（`data/sync_state.json`）、`--dry-run` 只读预览、`--skip-eval`、`--no-change`、`--yes`，产出 `reports/sync_report.md`（每步状态 + 指标前后对比）。配套：`tests/test_sync_vault.py` 三条探针（回写正则必须命中当前文档、锚点文件存在、dry-run 不写盘）；README/AI 工作手册/打包白名单（补 `launcher.py`/`stop_api.bat`/`sync_report.md`）同步更新；Vault 新增卡片《Vault 增长后的同步五步闭环》。
+- **验证结果**：真实全流程跑通 **全绿**——重建索引 docs=166/chunks=1,306/links=447（1.4s）→ 向量 1,306/1,306 → gold 复验 R@5 0.8167/MRR 0.7096/nDCG@10 0.7403（三项达标）→ 审计基线无需变更 → 回写 3 处锚点（README 延迟 0.323→0.336s、Q&A 管道耗时、PLAN chunk 数）→ PDF 重生 6 页 → **pytest 63/63**；`--dry-run` 实测零副作用（首版干跑误删向量产物，已修为只读分支）。
+- **交付物**：`scripts/sync_vault.py`、`tests/test_sync_vault.py`、`reports/sync_report.md`、`reports/knowledge_drafts/2026-09 Vault 增长后的同步五步闭环.md`（已入 Vault）。
+- **遗留与下一步**：本次新增卡片后 Vault 为 167 篇，索引/向量尚未重建（下次 `sync_vault.py` 会自动纳入）；用户侧：录屏 + 简历贴数字；AI 侧 W4 追加实验（M6b 分块粒度、本地 vs 云端、联网 B/C S1 Bing 探测）。
+
 ## 2026-09-17 · 知识沉淀入库 Vault + 检索索引/向量更新（语料 163→166 篇）
 
 - **做了什么**：①核对草稿区 7 张卡片，其中 5 张此前已入库，把**尚未入库的 2 张**（《索引重建陷阱：自增 rowid 让向量索引张冠李戴》《文档锚点漂移：别手抄数字，让文档去读报告》）按 Vault 规范入库 `20-Knowledge`——草稿 frontmatter 转 Vault 格式（type/status/created/updated/tags/source/confidence），占位 `{{draft-note}}` 换成真实双链，补「关联概念」段；②按 Vault 规则更新 `90-System/Indexes/Knowledge Index`（RAG 分区 +2 行）并写 `50-Logs/2026-09-17 VaultMind 知识沉淀入库与检索索引更新.md`；③重建索引 + 全量重建向量，使新卡片可检索；④语料增长后按「单一事实来源」回写文档锚点（166 篇 / 29.5 万字 / 974 H2 / 447 双链 / 1,306 chunks）。

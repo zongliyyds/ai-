@@ -1,6 +1,6 @@
 # VaultMind · 个人知识库 RAG 问答与评测系统
 
-> 把个人 Obsidian 知识库（166 篇笔记 / 29.5 万字 / 974 个 H2 / 447 条双链）做成**可问答、可评测、可复现**的 RAG 系统。
+> 把个人 Obsidian 知识库（167 篇笔记 / 29.7 万字 / 980 个 H2 / 455 条双链）做成**可问答、可评测、可复现**的 RAG 系统。
 > 面向「AI 应用开发 + AI 数据分析」双方向求职作品。零 LangChain / 零 torch / 零向量数据库。
 
 ## 指标总览（60 条 gold 评测集 · hybrid 检索 · 可复现）
@@ -12,7 +12,7 @@
 | Recall@10 | 0.8333 | — | — | `reports/baseline.md` |
 | MRR | **0.7096** | ≥0.65 | ✅ | `reports/baseline.md` |
 | nDCG@10 | **0.7403** | ≥0.70 | ✅ | `reports/baseline.md` |
-| 平均延迟 | 0.323 s/查询 | — | — | `reports/baseline.md` |
+| 平均延迟 | 0.374 s/查询 | — | — | `reports/baseline.md` |
 | 引用可追溯 | 非法引用编号 = 0 | 100% | ✅ | `reports/m4_smoke.md` |
 | 超纲拒答 | 2/2 探针拒答 | 拒答 | ✅ | `reports/m4_smoke.md` |
 | 消融实验 | 6 组 × 60 gold | 基线复现闸门 | ✅ | `reports/ablation.md` |
@@ -26,7 +26,7 @@
 D:\AI-Knowledge-Vault (Obsidian 源库，只读)
         │  scan → audit → chunk(结构感知, 600字/H2, 元数据前缀)
         ▼
-D:\RAG\data\vaultmind.db        ← docs(166)/chunks(1306)/links(447) + FTS5(jieba) + qa_logs
+D:\RAG\data\vaultmind.db        ← docs(167)/chunks(1314)/links(455) + FTS5(jieba) + qa_logs
         │  bge-m3 1024维向量化 → embeddings.npy（L2 归一化，cosine=点积）
         ▼
 检索层  BM25(FTS5) ─┐
@@ -74,6 +74,10 @@ D:\python\python.exe -m vaultmind.eval                     # 60 条基线指标
 
 # 5. Web 演示（双击亦可）
 run_api.bat        # http://127.0.0.1:8000（问答页 + 分析看板）
+
+# 6. 知识库有新增/改动时：一条命令同步全套
+#    重建索引+向量 → 复验 60 条 gold → 重定审计基线 → 回写文档锚点 → 重生 PDF → pytest
+D:\python\python.exe scripts\sync_vault.py          # 只看不改：--dry-run；跳过复验：--skip-eval
 ```
 
 > 注：默认工作区 `D:\RAG`、知识库 `D:\AI-Knowledge-Vault\AI-Knowledge-Vault`，可用环境变量
@@ -92,13 +96,13 @@ run_api.bat        # http://127.0.0.1:8000（问答页 + 分析看板）
 |---|---|
 | `vaultmind/ingest|retrieval|llm|eval|api` | 主包（管道/检索/生成/评测/产品层） |
 | `eval/gold_set.jsonl` | 60 条 gold 评测集（approved） |
-| `reports/` | audit 体检 / baseline 基线 / ablation 消融 / m4_smoke / gold_finalization / knowledge_drafts 知识卡片 |
+| `reports/` | audit 体检 / baseline 基线 / ablation 消融 / sync_report 同步报告 / m4_smoke / gold_finalization / knowledge_drafts 知识卡片 |
 | `docs/` | 立项书、AI 工作手册、各节点工单、简历 bullet、Q&A 预案、求职收尾清单 |
-| `tests/` | pytest 60 条（冒烟 + 探针 + 回归；pre-commit 钩子拦截坏提交） |
-| `scripts/` | 一键复现（finalize_gold / m4_smoke / m5_smoke / m6_ablation / env_check / package_repo） |
+| `tests/` | pytest 63 条（冒烟 + 探针 + 回归；pre-commit 钩子拦截坏提交） |
+| `scripts/` | 一键复现（**sync_vault** / finalize_gold / m4_smoke / m5_smoke / m6_ablation / env_check / package_repo / make_interview_pdf） |
 
 ## 测试
 
 ```powershell
-D:\python\python.exe -m pytest tests -q    # 60 passed
+D:\python\python.exe -m pytest tests -q    # 63 passed
 ```

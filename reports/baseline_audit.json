@@ -1,10 +1,10 @@
 {
  "root": "D:\\AI-Knowledge-Vault\\AI-Knowledge-Vault",
- "doc_count": 166,
- "total_chars": 294846,
- "body_chars": 262244,
+ "doc_count": 167,
+ "total_chars": 297064,
+ "body_chars": 264280,
  "by_type": {
-  "knowledge": 58,
+  "knowledge": 59,
   "log": 39,
   "NO_FRONTMATTER": 18,
   "decision": 16,
@@ -15,7 +15,7 @@
   "system-rule": 1
  },
  "by_top_folder": {
-  "20-Knowledge": 59,
+  "20-Knowledge": 60,
   "50-Logs": 39,
   "10-Projects": 22,
   "40-Decisions": 16,
@@ -29,7 +29,7 @@
   "30-Prompts": 1
  },
  "by_status": {
-  "active": 135,
+  "active": 136,
   "(none)": 18,
   "completed": 10,
   "complete": 2,
@@ -54,10 +54,10 @@
   "50-Logs/2026-09-12 dsh 插件检查更新.md",
   "90-System/Indexes/Decision Index.md"
  ],
- "est_chunks_h2": 1140,
- "total_h2": 974,
+ "est_chunks_h2": 1147,
+ "total_h2": 980,
  "total_h3": 264,
- "outlink_total": 447,
+ "outlink_total": 455,
  "unresolved_links": 29,
  "orphans": [
   "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md",
@@ -78,13 +78,13 @@
   "60-References/CET-4 知识库参考笔记.md",
   "50-Logs/2026-09-01 王克力求职自我介绍PPT制作.md",
   "10-Projects/python-learning-lab/capstone/project_spec.md",
+  "50-Logs/2026-09-17 VaultMind 知识沉淀入库与检索索引更新.md",
   "50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md",
   "50-Logs/2026-06-06 CET-4 4级基础模块开发.md",
   "10-Projects/wang-keli-interview-ppt/README.md",
   "50-Logs/2026-06-04 CET-4 知识库开发记录.md",
   "50-Logs/2026-06-06 CET-4 蒙题技巧模块开发.md",
-  "10-Projects/shuangti-weekly-report/README.md",
-  "60-References/exam-review-doc-gen.md"
+  "10-Projects/shuangti-weekly-report/README.md"
  ],
  "top_inbound": [
   [
@@ -124,22 +124,22 @@
    8
   ],
   [
+   "20-Knowledge/RAG 评测集构建：分层抽样定稿法.md",
+   7
+  ],
+  [
+   "20-Knowledge/消融实验方法论：负结果也是结论.md",
+   7
+  ],
+  [
    "20-Knowledge/Word 复杂模板 textbox 拼接布局的精准改造方法论.md",
-   7
-  ],
-  [
-   "20-Knowledge/PaperPass降AIGC五版对照方法论.md",
-   7
-  ],
-  [
-   "20-Knowledge/Python 面向对象编程.md",
    7
   ]
  ],
  "largest": [
   [
    "90-System/Indexes/Knowledge Index.md",
-   7053
+   7257
   ],
   [
    "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md",
