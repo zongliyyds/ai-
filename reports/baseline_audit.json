@@ -1,25 +1,25 @@
 {
  "root": "D:\\AI-Knowledge-Vault\\AI-Knowledge-Vault",
- "doc_count": 154,
- "total_chars": 276977,
- "body_chars": 246621,
+ "doc_count": 163,
+ "total_chars": 290335,
+ "body_chars": 258454,
  "by_type": {
-  "knowledge": 51,
-  "log": 37,
+  "knowledge": 56,
+  "log": 38,
   "NO_FRONTMATTER": 19,
-  "decision": 15,
-  "project": 13,
-  "source": 13,
+  "decision": 16,
+  "project": 14,
+  "source": 14,
   "index": 3,
   "prompt": 2,
   "system-rule": 1
  },
  "by_top_folder": {
-  "20-Knowledge": 52,
-  "50-Logs": 37,
-  "10-Projects": 21,
-  "40-Decisions": 15,
-  "60-References": 12,
+  "20-Knowledge": 57,
+  "50-Logs": 38,
+  "10-Projects": 22,
+  "40-Decisions": 16,
+  "60-References": 13,
   "90-System": 11,
   "AI Knowledge Hub.md": 1,
   "MEMORY.md": 1,
@@ -29,7 +29,7 @@
   "30-Prompts": 1
  },
  "by_status": {
-  "active": 122,
+  "active": 131,
   "(none)": 19,
   "completed": 10,
   "complete": 2,
@@ -55,10 +55,10 @@
   "90-System/Indexes/Decision Index.md",
   "90-System/Indexes/Knowledge Index.md"
  ],
- "est_chunks_h2": 1076,
- "total_h2": 922,
- "total_h3": 261,
- "outlink_total": 409,
+ "est_chunks_h2": 1124,
+ "total_h2": 961,
+ "total_h3": 264,
+ "outlink_total": 435,
  "unresolved_links": 29,
  "orphans": [
   "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md",
@@ -75,6 +75,7 @@
   "10-Projects/python-learning-lab/lessons/02_conditions.md",
   "10-Projects/python-learning-lab/lessons/01_variables.md",
   "60-References/职场关键能力课程论文项目.md",
+  "10-Projects/vaultmind-rag/README.md",
   "60-References/CET-4 知识库参考笔记.md",
   "50-Logs/2026-09-01 王克力求职自我介绍PPT制作.md",
   "10-Projects/python-learning-lab/capstone/project_spec.md",
@@ -84,13 +85,12 @@
   "50-Logs/2026-06-04 CET-4 知识库开发记录.md",
   "50-Logs/2026-06-06 CET-4 蒙题技巧模块开发.md",
   "10-Projects/shuangti-weekly-report/README.md",
-  "60-References/exam-review-doc-gen.md",
-  "50-Logs/2026-06-04 CET-4 启动器闪退修复.md"
+  "60-References/exam-review-doc-gen.md"
  ],
  "top_inbound": [
   [
    "10-Projects/cet4-knowledge-base/README.md",
-   36
+   37
   ],
   [
    "20-Knowledge/论文格式模板匹配方法论.md",
@@ -139,12 +139,12 @@
  ],
  "largest": [
   [
-   "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md",
-   6261
+   "90-System/Indexes/Knowledge Index.md",
+   6718
   ],
   [
-   "90-System/Indexes/Knowledge Index.md",
-   5990
+   "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md",
+   6261
   ],
   [
    "10-Projects/python-learning-lab/lessons/08_oop.md",
@@ -159,12 +159,12 @@
    4747
   ],
   [
-   "20-Knowledge/Ardot Canvas 设计稿制作工作流.md",
-   4419
+   "MEMORY.md",
+   4701
   ],
   [
-   "MEMORY.md",
-   4119
+   "20-Knowledge/Ardot Canvas 设计稿制作工作流.md",
+   4419
   ],
   [
    "10-Projects/python-learning-lab/lessons/06_files.md",
@@ -183,8 +183,8 @@
    3917
   ],
   [
-   "10-Projects/cet4-knowledge-base/README.md",
-   3442
+   "90-System/Indexes/Project Index.md",
+   3674
   ]
  ],
  "smallest_lt_300": [

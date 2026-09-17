@@ -14,7 +14,9 @@ if %errorlevel% neq 0 (
     echo.
     echo [VaultMind] start FAILED, exit code %errorlevel%.
     echo Common fixes: 1^) ensure Ollama is running ^(ollama serve^)
-    echo              2^) reindex: D:\python\python.exe -m vaultmind.ingest
+    echo              2^) reindex + rebuild vectors:
+    echo                 D:\python\python.exe -m vaultmind.ingest
+    echo                 D:\python\python.exe -m vaultmind.search --build-vectors
     ping -n 9 127.0.0.1 >nul
 )
 exit /b 0

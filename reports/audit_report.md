@@ -1,19 +1,19 @@
 # VaultMind 知识库体检报告
 
-> 生成时间：2026-09-16 22:51 ｜ 数据源（只读）：`D:\AI-Knowledge-Vault\AI-Knowledge-Vault` ｜ 复现命令：`D:\python\python.exe -m vaultmind.ingest`
+> 生成时间：2026-09-17 09:39 ｜ 数据源（只读）：`D:\AI-Knowledge-Vault\AI-Knowledge-Vault` ｜ 复现命令：`D:\python\python.exe -m vaultmind.ingest`
 
 ## 1. 规模概览与基线对比
 
 | 指标 | 本次 | 基线 | 一致性 |
 |---|---|---|---|
-| 笔记数 | 154 | 154 | ✓ 一致 |
-| 总字符 | 276977 | 276977 | ✓ 一致 |
-| 正文字符 | 246621 | 246621 | ✓ 一致 |
-| H2 节数 | 922 | 922 | ✓ 一致 |
-| H3 节数 | 261 | 261 | ✓ 一致 |
-| 双链出链 | 409 | 409 | ✓ 一致 |
+| 笔记数 | 163 | 163 | ✓ 一致 |
+| 总字符 | 290335 | 290335 | ✓ 一致 |
+| 正文字符 | 258454 | 258454 | ✓ 一致 |
+| H2 节数 | 961 | 961 | ✓ 一致 |
+| H3 节数 | 264 | 264 | ✓ 一致 |
+| 双链出链 | 435 | 435 | ✓ 一致 |
 | 死链 | 29 | 29 | ✓ 一致 |
-| 预估 chunk 数（H2+1/篇） | 1076 | 1076 | ✓ 一致 |
+| 预估 chunk 数（H2+1/篇） | 1124 | 1124 | ✓ 一致 |
 
 > 出现 ✗ 时先确认 Vault 是否有新增/修改；无变化则回查审计口径（scripts/audit_baseline.py）。
 
@@ -21,12 +21,12 @@
 
 | type | 数量 |
 |---|---|
-| knowledge | 51 |
-| log | 37 |
+| knowledge | 56 |
+| log | 38 |
 | NO_FRONTMATTER | 19 |
-| decision | 15 |
-| project | 13 |
-| source | 13 |
+| decision | 16 |
+| project | 14 |
+| source | 14 |
 | index | 3 |
 | prompt | 2 |
 | system-rule | 1 |
@@ -35,7 +35,7 @@
 
 | status | 数量 |
 |---|---|
-| active | 122 |
+| active | 131 |
 | (none) | 19 |
 | completed | 10 |
 | complete | 2 |
@@ -45,11 +45,11 @@
 
 | 目录 | 数量 |
 |---|---|
-| 20-Knowledge | 52 |
-| 50-Logs | 37 |
-| 10-Projects | 21 |
-| 40-Decisions | 15 |
-| 60-References | 12 |
+| 20-Knowledge | 57 |
+| 50-Logs | 38 |
+| 10-Projects | 22 |
+| 40-Decisions | 16 |
+| 60-References | 13 |
 | 90-System | 11 |
 | AI Knowledge Hub.md | 1 |
 | MEMORY.md | 1 |
@@ -60,8 +60,8 @@
 
 ## 5. 图谱与链接健康
 
-- 出链总数 **409**，其中死链 **29**（死链率 7.1%）
-- 孤儿笔记（无入链，排除 90-System/.obsidian）：**44** 篇，Top-25（按体量）：
+- 出链总数 **435**，其中死链 **29**（死链率 6.7%）
+- 孤儿笔记（无入链，排除 90-System/.obsidian）：**45** 篇，Top-25（按体量）：
 
 1. `20-Knowledge/Godot 4.7 GDScript 踩坑清单.md`
 2. `10-Projects/python-learning-lab/lessons/08_oop.md`
@@ -77,23 +77,23 @@
 12. `10-Projects/python-learning-lab/lessons/02_conditions.md`
 13. `10-Projects/python-learning-lab/lessons/01_variables.md`
 14. `60-References/职场关键能力课程论文项目.md`
-15. `60-References/CET-4 知识库参考笔记.md`
-16. `50-Logs/2026-09-01 王克力求职自我介绍PPT制作.md`
-17. `10-Projects/python-learning-lab/capstone/project_spec.md`
-18. `50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md`
-19. `50-Logs/2026-06-06 CET-4 4级基础模块开发.md`
-20. `10-Projects/wang-keli-interview-ppt/README.md`
-21. `50-Logs/2026-06-04 CET-4 知识库开发记录.md`
-22. `50-Logs/2026-06-06 CET-4 蒙题技巧模块开发.md`
-23. `10-Projects/shuangti-weekly-report/README.md`
-24. `60-References/exam-review-doc-gen.md`
-25. `50-Logs/2026-06-04 CET-4 启动器闪退修复.md`
+15. `10-Projects/vaultmind-rag/README.md`
+16. `60-References/CET-4 知识库参考笔记.md`
+17. `50-Logs/2026-09-01 王克力求职自我介绍PPT制作.md`
+18. `10-Projects/python-learning-lab/capstone/project_spec.md`
+19. `50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md`
+20. `50-Logs/2026-06-06 CET-4 4级基础模块开发.md`
+21. `10-Projects/wang-keli-interview-ppt/README.md`
+22. `50-Logs/2026-06-04 CET-4 知识库开发记录.md`
+23. `50-Logs/2026-06-06 CET-4 蒙题技巧模块开发.md`
+24. `10-Projects/shuangti-weekly-report/README.md`
+25. `60-References/exam-review-doc-gen.md`
 
 - 入链 Top 12：
 
 | 笔记 | 入链数 |
 |---|---|
-| 10-Projects/cet4-knowledge-base/README.md | 36 |
+| 10-Projects/cet4-knowledge-base/README.md | 37 |
 | 20-Knowledge/论文格式模板匹配方法论.md | 11 |
 | 20-Knowledge/AIGC检测论文降重分析.md | 10 |
 | 20-Knowledge/python-pptx 演示文稿自动化.md | 9 |
@@ -137,11 +137,11 @@
 
 | 指标 | 值 |
 |---|---|
-| docs 表行数 | 154 |
-| chunks 行数 | 1237 |
-| links 行数 | 409 |
-| FTS5 索引行数 | 1237 |
-| 索引库 | `D:\RAG\data\vaultmind.db`（1808.0 KB） |
+| docs 表行数 | 163 |
+| chunks 行数 | 1289 |
+| links 行数 | 435 |
+| FTS5 索引行数 | 1289 |
+| 索引库 | `D:\RAG\data\vaultmind.db`（1884.0 KB） |
 
 > 分块口径：每篇 1 个「概述」chunk + 每个 H2 小节 1 个 chunk；超 600 字的小节按 H3/段落二次切分；每个 chunk 注入元数据前缀。
 
@@ -150,8 +150,8 @@
 1. **清理 0 字节文件**：`未命名 1.md`、`未命名.md` 没有任何内容，建议在 Obsidian 中直接删除。
 2. **统一状态取值**：`completed`（10）与 `complete`（2）混用，建议全局统一为 `completed`。
 3. **补齐 frontmatter**：18 篇笔记缺 frontmatter，建议补 type/status/tags 三字段。
-4. **修复失效双链**：29 条出链指向不存在的笔记（死链率 7.1%），建议逐一修复或删除。
-5. **孤儿笔记**：44 篇无任何入链，建议在索引页（90-System/Indexes）补入口或并入相关主题。
+4. **修复失效双链**：29 条出链指向不存在的笔记（死链率 6.7%），建议逐一修复或删除。
+5. **孤儿笔记**：45 篇无任何入链，建议在索引页（90-System/Indexes）补入口或并入相关主题。
 
 > 治理前后对比（覆盖率、死链率、孤儿数）将作为 AI 数据分析方向的可视化素材。
 

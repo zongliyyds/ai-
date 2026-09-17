@@ -2,6 +2,7 @@
 """生成人类可读体检报告 reports/audit_report.md（只写工作区，不碰 Vault）。"""
 import json
 from datetime import datetime
+from pathlib import Path
 
 from vaultmind.config import AUDIT_REPORT, BASELINE_JSON, VAULT_ROOT
 
@@ -24,7 +25,7 @@ def _md_table(headers, rows):
 
 
 def write_audit_report(metrics, stats=None, out=None):
-    out = out or AUDIT_REPORT
+    out = Path(out) if out else AUDIT_REPORT
     baseline = None
     if BASELINE_JSON.exists():
         try:

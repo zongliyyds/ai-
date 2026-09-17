@@ -5,6 +5,7 @@ r"""SQLite 索引库：docs / chunks / links + FTS5（jieba 分词）全文索�
 """
 import logging
 import sqlite3
+from pathlib import Path
 
 from vaultmind.config import DB_PATH
 from vaultmind.ingest.auditor import inbound_counter, link_stem, stem2rel_map
@@ -66,11 +67,27 @@ END;
 
 
 def build_db(docs, chunks, db_path=None) -> dict:
-    """重建索引库（清空后全量写入），返回统计信息。"""
+    """重建索引库（清空后全量写入），返回统计信息。
+
+    chunk.id 是自增 rowid（位置性 ID）：重建后行号可能整体错位，
+    旧 embeddings.npy/chunk_ids.json 的「行号→内容」映射随之失效。
+    因此重建真实索引库时同步删除向量产物，强制 --build-vectors 全量重建，
+    防止 hybrid 检索静默退化（2026-09-17 事故根因）。
+    """
     import jieba  # 延迟导入：词典构建较慢，仅索引时需要
     jieba.setLogLevel(logging.WARNING)
 
-    db_path = db_path or DB_PATH
+    db_path = Path(db_path) if db_path else Path(DB_PATH)
+    is_real_db = db_path == Path(DB_PATH)
+    if is_real_db:
+        from vaultmind.retrieval.vector import EMB_NPY, EMB_IDS
+        for f in (EMB_NPY, EMB_IDS):
+            if f.exists():
+                f.unlink()
+                print("[indexer] 向量索引已随重建失效：%s" % f.name)
+        if not (EMB_NPY.exists() or EMB_IDS.exists()):
+            print("[indexer] 向量索引不存在，检索前请运行 "
+                  "D:\\python\\python.exe -m vaultmind.search --build-vectors")
     db_path.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(str(db_path))
     con.executescript(SCHEMA)

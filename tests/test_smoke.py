@@ -18,10 +18,12 @@ def test_scan_readonly():
 
 
 def test_full_pipeline_rebuild(tmp_path):
-    """一条命令重建索引：docs/chunks/links/FTS5 全部写入 data/。
+    """一条命令重建索引（临时库，不动真实 data/vaultmind.db）：
+    docs/chunks/links/FTS5 全部写入临时库。
     报告输出重定向到临时路径，避免时间戳污染 tracked 的 reports/audit_report.md。
     """
-    res = run_pipeline(report_out=tmp_path / "audit_report.md")
+    res = run_pipeline(report_out=tmp_path / "audit_report.md",
+                       db_path=tmp_path / "vaultmind.db")
     s, m = res["stats"], res["metrics"]
     assert m["doc_count"] >= 150
     assert s["docs"] == m["doc_count"]

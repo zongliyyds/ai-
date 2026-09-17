@@ -97,6 +97,16 @@ def load_index() -> tuple[np.ndarray, list[int]]:
     ids = json.loads(EMB_IDS.read_text(encoding="utf-8"))
     if len(m) != len(ids):
         raise VectorIndexMissing("向量矩阵与 id 映射行数不一致，请重建向量索引")
+    # 一致性闸门：id 映射必须与索引库当前 chunk 行号逐位一致。
+    # chunk.id 是自增 rowid（位置性 ID），重建索引后行号错位会导致向量
+    # 「张冠李戴」、检索静默退化——宁可报错也不返回脏结果（2026-09-17 事故根因）。
+    con = sqlite3.connect(str(DB_PATH))
+    db_ids = [r[0] for r in con.execute("SELECT id FROM chunks ORDER BY id")]
+    con.close()
+    if ids != db_ids:
+        raise VectorIndexMissing(
+            "向量索引与当前索引库不一致（chunk 行号错位）。请重建向量索引："
+            "D:\\python\\python.exe -m vaultmind.search --build-vectors")
     return m, ids
 
 

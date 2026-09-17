@@ -13,17 +13,19 @@ def run_audit_only(root=None) -> dict:
     return auditor.audit(docs, root)
 
 
-def run_pipeline(root=None, build_index=True, report_out=None) -> dict:
+def run_pipeline(root=None, build_index=True, report_out=None, db_path=None) -> dict:
     """完整管道。返回 docs/metrics/chunks/stats。
 
     report_out：报告输出路径（默认 reports/audit_report.md；测试请传临时路径，
     避免时间戳污染 tracked 报告）。
+    db_path：索引库路径（默认 data/vaultmind.db；测试请传临时路径，
+    避免重建真实索引库并连带失效向量索引）。
     """
     t0 = time.time()
     docs = scanner.scan_docs(root)
     metrics = auditor.audit(docs, root)
     chunks = chunker.chunk_all(docs)
-    stats = indexer.build_db(docs, chunks) if build_index else None
+    stats = indexer.build_db(docs, chunks, db_path=db_path) if build_index else None
     metrics["elapsed_sec"] = round(time.time() - t0, 2)
 
     AUDIT_JSON.parent.mkdir(parents=True, exist_ok=True)
