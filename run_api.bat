@@ -36,5 +36,8 @@ echo      %PY% -m vaultmind.search --build-vectors
 echo.
 echo 最近日志：
 powershell -NoProfile -Command "if (Test-Path 'D:\RAG\data\api_server.log') { Get-Content 'D:\RAG\data\api_server.log' -Tail 20 }"
+echo.
+echo 若日志里是 'Address already in use'：说明端口被另一个服务占着，
+echo 但 TCP 探测没连上（可能刚启动中）——关掉旧窗口后再双击本文件。
 ping -n 12 127.0.0.1 >nul
 exit /b 0
