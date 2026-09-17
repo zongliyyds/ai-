@@ -3,6 +3,13 @@
 > 约定：每个节点验收通过后追加一条；格式：`日期 · 节点 | 做了什么 | 验证结果 | 遗留与下一步`。
 > AI 会话开工必读本文件 + `PLAN.md`；节点收尾必须回来追加。
 
+## 2026-09-17 · 修复 run_api.bat 双击无反应（端口检测不可靠）
+
+- **做了什么**：`run_api.bat` 端口检测由 `netstat|findstr` 改为 Python `socket.connect_ex` TCP 探测；启动输出落盘 `data/api_server.log`、异常时显示返回码 + 日志尾部（不再静默秒退）；窗口文案明确「关窗=停服务」。`search.bat` 改为无参数时交互式提问、跑完 `pause` 不闪退（检索不需要启动服务）。
+- **验证结果**：TCP 探测在服务监听时返回 0（netstat 同场景返回空 + 退出码 1）；`/health` 200；问答页 `/` 200（10,358 bytes）；CLI 检索「CET-4 去重」命中 3 条（命中 `TF-IDF 中文文本去重实践` 知识卡）。pytest 60/60 未受影响（仅改 bat 与 .gitignore）。
+- **根因记录**：本机 `netstat -ano` 报「Not enough memory resources」且输出为空，`findstr` 因此无匹配 → bat 误判「已在运行」→ 只提示一句并于 3 秒后自动关窗，用户侧表现为「双击没反应」。
+- **遗留与下一步**：仍为用户侧动作：双击 `run_api.bat` 常驻服务、3 分钟录屏、简历贴新数字。AI 侧 W4 追加实验（M6b 分块粒度、本地 vs 云端、联网 B/C 的 S1 Bing 探测）。
+
 ## 2026-09-17 · GitHub 发布 + 全套文档重锚定（新基线回写）
 
 - **做了什么**：①**接入 GitHub**——`D:\RAG` 推送至私有仓库 `https://github.com/zongliyyds/ai-`（origin/main，97 文件；远端建库时的占位 README 用 `merge --allow-unrelated-histories -X ours` 合并，保留本项目 README），工作区那批索引安全修复先提交为 `fix(索引安全)` 再推送；②**新基线回写**——修复后重建向量得到的更优指标（R@1 0.6167→**0.6333**、MRR 0.7010→**0.7096**、nDCG@10 0.7339→**0.7403**、延迟 0.866s→**0.253s**，R@5 0.8167 与坏例 11 条不变）同步进 README/PLAN/Q&A 预案/简历 bullet/工单注记；③**消灭漂移源**——测试断言、PDF 生成脚本、消融总控里的锚点常量改为**从 reports/ 与索引库现场解析**（`tests/_doc_anchors.py` 新增），报告重生后文档自动跟随；④**重跑六组消融**并重生《面试答辩手册 PDF》。

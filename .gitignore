@@ -6,6 +6,7 @@ dist/
 *.sqlite3
 *.npy
 *.npz
+api_server.log
 
 # 环境
 .venv/
