@@ -3,6 +3,15 @@
 > 约定：每个节点验收通过后追加一条；格式：`日期 · 节点 | 做了什么 | 验证结果 | 遗留与下一步`。
 > AI 会话开工必读本文件 + `PLAN.md`；节点收尾必须回来追加。
 
+## 2026-09-17 · 修「页面提问报 JSON 解析错误」：依赖掉线要优雅降级
+
+- **现象**：Web 问答页提问（java / hybrid / top_k=8）显示 `错误：SyntaxError: Unexpected token 'I', "Internal S"... is not valid JSON`。
+- **真因链**：①**Ollama 未运行**（`WinError 10061 目标计算机积极拒绝`，跑完 sync_vault 后掉的——本地服务会话后掉线属常态）；②`/ask` 里 `search → embed_texts` 抛 RuntimeError，未被捕获 → FastAPI 返回 **500 纯文本 "Internal Server Error"**；③前端 `await r.json()` 直接炸成 SyntaxError，用户看不到真正原因。
+- **修复**：①后端 `/ask`、`/search` 捕获 `RuntimeError`/`VectorIndexMissing` → **结构化 503 JSON**（`{error, message, hint, detail}`）；②新增 `require_deps()` 前置依赖检查与 `GET /deps` 自检端点；③`/health` 升级为真实探活（`status: ok|degraded`、`deps.ollama.ok`、`models`、`ready`）；④前端新增 `api()` 统一封装（先 text() 再试着 JSON.parse，非 JSON 也能出可读错误）+ 错误横幅 + 进页面/每 30s 调 `/deps` 提示"当前无法问答及怎么修"。
+- **验证结果**：**pytest 68/68**（新增 6 条 API 探针：health 真实探活、Ollama 掉线时 `/ask`/`/search` 必须回 **503 + JSON detail**（含 `ollama serve` 提示）、缺模型报 `model_missing`、`/deps` 形状）；实测重启服务后 `/health` ready=true、`/deps` 三项 ok、`/ask java` **HTTP 200 + JSON**（6 条引用 / 非法编号 0 / 19.6s）。
+- **交付物**：`vaultmind/api/main.py`、`vaultmind/api/static/index.html`、`tests/test_api.py`；Vault 知识卡片《本地模型掉线：探活 + 结构化 503 + 前端优雅降级》。
+- **遗留与下一步**：用户侧需**刷新页面**（服务已重启，新 HTML 生效）；录屏时记得先 `ollama serve`。AI 侧 W4 追加实验（M6b 分块粒度、本地 vs 云端、联网 B/C S1 Bing 探测）。
+
 ## 2026-09-17 · Vault 同步固化为一条命令（scripts/sync_vault.py）
 
 - **做了什么**：把「Vault 增长 → 重建索引 → 重建向量 → 复验 60 条 gold → 重定审计基线 → 回写文档锚点 → 重生 PDF → pytest」这 8 步固化成 `scripts/sync_vault.py`（~63s 一次跑完）。带 Vault 指纹变更检测（`data/sync_state.json`）、`--dry-run` 只读预览、`--skip-eval`、`--no-change`、`--yes`，产出 `reports/sync_report.md`（每步状态 + 指标前后对比）。配套：`tests/test_sync_vault.py` 三条探针（回写正则必须命中当前文档、锚点文件存在、dry-run 不写盘）；README/AI 工作手册/打包白名单（补 `launcher.py`/`stop_api.bat`/`sync_report.md`）同步更新；Vault 新增卡片《Vault 增长后的同步五步闭环》。

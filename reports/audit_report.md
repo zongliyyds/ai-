@@ -1,19 +1,19 @@
 # VaultMind 知识库体检报告
 
-> 生成时间：2026-09-17 14:56 ｜ 数据源（只读）：`D:\AI-Knowledge-Vault\AI-Knowledge-Vault` ｜ 复现命令：`D:\python\python.exe -m vaultmind.ingest`
+> 生成时间：2026-09-17 16:07 ｜ 数据源（只读）：`D:\AI-Knowledge-Vault\AI-Knowledge-Vault` ｜ 复现命令：`D:\python\python.exe -m vaultmind.ingest`
 
 ## 1. 规模概览与基线对比
 
 | 指标 | 本次 | 基线 | 一致性 |
 |---|---|---|---|
-| 笔记数 | 167 | 167 | ✓ 一致 |
-| 总字符 | 297064 | 297064 | ✓ 一致 |
-| 正文字符 | 264280 | 264280 | ✓ 一致 |
-| H2 节数 | 980 | 980 | ✓ 一致 |
+| 笔记数 | 168 | 167 | ✗ 不一致 |
+| 总字符 | 299669 | 297064 | ✗ 不一致 |
+| 正文字符 | 266681 | 264280 | ✗ 不一致 |
+| H2 节数 | 986 | 980 | ✗ 不一致 |
 | H3 节数 | 264 | 264 | ✓ 一致 |
-| 双链出链 | 455 | 455 | ✓ 一致 |
+| 双链出链 | 460 | 455 | ✗ 不一致 |
 | 死链 | 29 | 29 | ✓ 一致 |
-| 预估 chunk 数（H2+1/篇） | 1147 | 1147 | ✓ 一致 |
+| 预估 chunk 数（H2+1/篇） | 1154 | 1147 | ✗ 不一致 |
 
 > 出现 ✗ 时先确认 Vault 是否有新增/修改；无变化则回查审计口径（scripts/audit_baseline.py）。
 
@@ -21,7 +21,7 @@
 
 | type | 数量 |
 |---|---|
-| knowledge | 59 |
+| knowledge | 60 |
 | log | 39 |
 | NO_FRONTMATTER | 18 |
 | decision | 16 |
@@ -35,7 +35,7 @@
 
 | status | 数量 |
 |---|---|
-| active | 136 |
+| active | 137 |
 | (none) | 18 |
 | completed | 10 |
 | complete | 2 |
@@ -45,7 +45,7 @@
 
 | 目录 | 数量 |
 |---|---|
-| 20-Knowledge | 60 |
+| 20-Knowledge | 61 |
 | 50-Logs | 39 |
 | 10-Projects | 22 |
 | 40-Decisions | 16 |
@@ -60,7 +60,7 @@
 
 ## 5. 图谱与链接健康
 
-- 出链总数 **455**，其中死链 **29**（死链率 6.4%）
+- 出链总数 **460**，其中死链 **29**（死链率 6.3%）
 - 孤儿笔记（无入链，排除 90-System/.obsidian）：**46** 篇，Top-25（按体量）：
 
 1. `20-Knowledge/Godot 4.7 GDScript 踩坑清单.md`
@@ -76,12 +76,12 @@
 11. `50-Logs/2026-06-22 职场关键能力论文三轮迭代.md`
 12. `10-Projects/python-learning-lab/lessons/02_conditions.md`
 13. `10-Projects/python-learning-lab/lessons/01_variables.md`
-14. `60-References/职场关键能力课程论文项目.md`
-15. `10-Projects/vaultmind-rag/README.md`
-16. `60-References/CET-4 知识库参考笔记.md`
-17. `50-Logs/2026-09-01 王克力求职自我介绍PPT制作.md`
-18. `10-Projects/python-learning-lab/capstone/project_spec.md`
-19. `50-Logs/2026-09-17 VaultMind 知识沉淀入库与检索索引更新.md`
+14. `50-Logs/2026-09-17 VaultMind 知识沉淀入库与检索索引更新.md`
+15. `60-References/职场关键能力课程论文项目.md`
+16. `10-Projects/vaultmind-rag/README.md`
+17. `60-References/CET-4 知识库参考笔记.md`
+18. `50-Logs/2026-09-01 王克力求职自我介绍PPT制作.md`
+19. `10-Projects/python-learning-lab/capstone/project_spec.md`
 20. `50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md`
 21. `50-Logs/2026-06-06 CET-4 4级基础模块开发.md`
 22. `10-Projects/wang-keli-interview-ppt/README.md`
@@ -136,11 +136,11 @@
 
 | 指标 | 值 |
 |---|---|
-| docs 表行数 | 167 |
-| chunks 行数 | 1314 |
-| links 行数 | 455 |
-| FTS5 索引行数 | 1314 |
-| 索引库 | `D:\RAG\data\vaultmind.db`（1920.0 KB） |
+| docs 表行数 | 168 |
+| chunks 行数 | 1321 |
+| links 行数 | 460 |
+| FTS5 索引行数 | 1321 |
+| 索引库 | `D:\RAG\data\vaultmind.db`（1944.0 KB） |
 
 > 分块口径：每篇 1 个「概述」chunk + 每个 H2 小节 1 个 chunk；超 600 字的小节按 H3/段落二次切分；每个 chunk 注入元数据前缀。
 
@@ -149,7 +149,7 @@
 1. **清理 0 字节文件**：`未命名 1.md`、`未命名.md` 没有任何内容，建议在 Obsidian 中直接删除。
 2. **统一状态取值**：`completed`（10）与 `complete`（2）混用，建议全局统一为 `completed`。
 3. **补齐 frontmatter**：17 篇笔记缺 frontmatter，建议补 type/status/tags 三字段。
-4. **修复失效双链**：29 条出链指向不存在的笔记（死链率 6.4%），建议逐一修复或删除。
+4. **修复失效双链**：29 条出链指向不存在的笔记（死链率 6.3%），建议逐一修复或删除。
 5. **孤儿笔记**：46 篇无任何入链，建议在索引页（90-System/Indexes）补入口或并入相关主题。
 
 > 治理前后对比（覆盖率、死链率、孤儿数）将作为 AI 数据分析方向的可视化素材。

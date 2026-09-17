@@ -1,10 +1,10 @@
 {
  "root": "D:\\AI-Knowledge-Vault\\AI-Knowledge-Vault",
- "doc_count": 167,
- "total_chars": 297064,
- "body_chars": 264280,
+ "doc_count": 168,
+ "total_chars": 299669,
+ "body_chars": 266681,
  "by_type": {
-  "knowledge": 59,
+  "knowledge": 60,
   "log": 39,
   "NO_FRONTMATTER": 18,
   "decision": 16,
@@ -15,7 +15,7 @@
   "system-rule": 1
  },
  "by_top_folder": {
-  "20-Knowledge": 60,
+  "20-Knowledge": 61,
   "50-Logs": 39,
   "10-Projects": 22,
   "40-Decisions": 16,
@@ -29,7 +29,7 @@
   "30-Prompts": 1
  },
  "by_status": {
-  "active": 136,
+  "active": 137,
   "(none)": 18,
   "completed": 10,
   "complete": 2,
@@ -54,10 +54,10 @@
   "50-Logs/2026-09-12 dsh 插件检查更新.md",
   "90-System/Indexes/Decision Index.md"
  ],
- "est_chunks_h2": 1147,
- "total_h2": 980,
+ "est_chunks_h2": 1154,
+ "total_h2": 986,
  "total_h3": 264,
- "outlink_total": 455,
+ "outlink_total": 460,
  "unresolved_links": 29,
  "orphans": [
   "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md",
@@ -73,12 +73,12 @@
   "50-Logs/2026-06-22 职场关键能力论文三轮迭代.md",
   "10-Projects/python-learning-lab/lessons/02_conditions.md",
   "10-Projects/python-learning-lab/lessons/01_variables.md",
+  "50-Logs/2026-09-17 VaultMind 知识沉淀入库与检索索引更新.md",
   "60-References/职场关键能力课程论文项目.md",
   "10-Projects/vaultmind-rag/README.md",
   "60-References/CET-4 知识库参考笔记.md",
   "50-Logs/2026-09-01 王克力求职自我介绍PPT制作.md",
   "10-Projects/python-learning-lab/capstone/project_spec.md",
-  "50-Logs/2026-09-17 VaultMind 知识沉淀入库与检索索引更新.md",
   "50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md",
   "50-Logs/2026-06-06 CET-4 4级基础模块开发.md",
   "10-Projects/wang-keli-interview-ppt/README.md",
@@ -139,7 +139,7 @@
  "largest": [
   [
    "90-System/Indexes/Knowledge Index.md",
-   7257
+   7507
   ],
   [
    "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md",

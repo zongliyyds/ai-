@@ -48,6 +48,10 @@ a.jump{color:var(--accent);text-decoration:none;margin-left:8px;font-size:12px}
 .bar .fill{height:100%;border-radius:5px 0 0 5px}
 .bar .tick{position:absolute;top:0;bottom:0;width:2px;background:var(--warn)}
 .bar .lbl{position:absolute;right:6px;top:0;line-height:20px;font-size:12px;color:var(--text)}
+.banner{border-radius:10px;padding:10px 12px;margin:10px 0;font-size:13px;border:1px solid var(--line)}
+.banner.bad{background:#2a0d0d;border-color:#7f1d1d;color:#ffd7d7}
+.banner.bad code{background:#00000055;padding:2px 6px;border-radius:4px;color:#ffb4b4;font-family:Consolas,monospace}
+.banner.ok{background:#052e1b;border-color:#14532d;color:#c9f7dd;font-size:12px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
 th{color:var(--dim);font-weight:600}
@@ -76,6 +80,7 @@ th{color:var(--dim);font-weight:600}
         <button class="act" id="askbtn" onclick="ask()">提问</button>
       </div>
       <div id="spinner">⏳ 检索 + 本地生成中（7B 模型约 10~20 秒）…</div>
+      <div id="depsbar"></div>
       <div id="result"></div>
     </div>
   </section>
@@ -97,15 +102,43 @@ function showTab(t){
   $("panel-qa").style.display=t==="qa"?"":"none";$("panel-dash").style.display=t==="dash"?"":"none";
   if(t==="dash")loadDash();
 }
+async function api(path,opt){
+  // 统一入口：即使服务端返回非 JSON（500/503 纯文本），也给出可读错误，绝不抛 SyntaxError
+  const r=await fetch(path,opt);
+  const raw=await r.text();
+  let d=null;try{d=JSON.parse(raw)}catch(_){}
+  return {ok:r.ok,status:r.status,data:d,raw:raw};
+}
+function errText(p){
+  const d=p.data,det=d&&d.detail;
+  if(det&&typeof det==="object"){
+    const hint=det.hint?" ｜ 修复：<code>"+esc(det.hint)+"</code>":"";
+    return esc(det.message||det.error||"请求失败")+hint;
+  }
+  if(det)return esc(String(det));
+  if(d&&d.error)return esc(String(d.error));
+  return "服务端返回 "+p.status+"："+esc((p.raw||"").slice(0,300));
+}
+function banner(html,cls){$("depsbar").innerHTML=html?'<div class="banner '+(cls||"bad")+'">'+html+'</div>':""}
+async function checkDeps(){
+  try{
+    const p=await api("/deps");
+    if(!p.ok||!p.data){banner("");return}
+    const bad=(p.data.checks||[]).filter(c=>!c.ok);
+    if(bad.length){
+      banner("⚠️ 当前无法问答："+bad.map(c=>esc(c.name)+(c.hint?"（修复：<code>"+esc(c.hint)+"</code>）":"")).join("；"),
+             "bad");
+    }else{banner("✅ 依赖就绪：Ollama 服务 + bge-m3 + qwen2.5:7b-instruct","ok")}
+  }catch(e){banner("")}
+}
 async function ask(){
   const q=$("q").value.trim();if(!q)return;
   $("askbtn").disabled=true;$("spinner").classList.add("on");$("result").innerHTML="";
   try{
-    const r=await fetch("/ask",{method:"POST",headers:{"Content-Type":"application/json"},
+    const p=await api("/ask",{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({query:q,mode:$("mode").value,top_k:parseInt($("topk").value)})});
-    const d=await r.json();
-    if(!r.ok){$("result").innerHTML='<div class="answer">'+(d.detail?JSON.stringify(d.detail):"请求失败")+'</div>';return}
-    renderAnswer(d);
+    if(!p.ok){$("result").innerHTML='<div class="answer">错误：'+errText(p)+'</div>';checkDeps();return}
+    renderAnswer(p.data);
   }catch(e){$("result").innerHTML='<div class="answer">错误：'+esc(String(e))+'</div>'}
   finally{$("askbtn").disabled=false;$("spinner").classList.remove("on")}
 }
@@ -137,14 +170,19 @@ function renderAnswer(d){
 }
 async function fb(row,rating){
   const cat=$("fbcat")?$("fbcat").value:"";
-  const r=await fetch("/feedback",{method:"POST",headers:{"Content-Type":"application/json"},
+  const p=await api("/feedback",{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({row_id:row,rating:rating,category:cat})});
-  const d=await r.json();
-  $("fbnote").textContent=d.ok?"已记录 ✅（归因数据已入 qa_logs）":"记录失败";
+  $("fbnote").textContent=(p.ok&&p.data&&p.data.ok)?"已记录 ✅（归因数据已入 qa_logs）":
+    ("记录失败："+errText(p));
 }
 async function loadDash(){
-  const [s,m,b]=await Promise.all([fetch("/stats"),fetch("/metrics"),fetch("/badcases")]);
-  const st=await s.json(),mt=await m.json(),bc=await b.json();
+  const [s,m,b]=await Promise.all([api("/stats"),api("/metrics"),api("/badcases")]);
+  if(!s.ok||!m.ok||!b.ok){
+    $("stats").innerHTML='<div class="note">看板数据读取失败：'+
+      errText(!s.ok?s:(!m.ok?m:b))+'</div>';
+    return;
+  }
+  const st=s.data,mt=m.data,bc=b.data;
   $("stats").innerHTML=[["笔记","docs"],["总字符","chars"],["H2 小节","h2"],["Chunks","chunks"],
     ["双链","links"],["死链","dead_links"],["FTS 行","fts_rows"],["问答日志","qa_logs"]]
     .map(([k,key])=>'<div class="stat"><div class="v">'+(st[key]??"-")+'</div><div class="k">'+k+'</div></div>').join("");
@@ -163,6 +201,8 @@ async function loadDash(){
     '</td><td>'+(b.first_rank??"-")+'</td><td>'+esc(b.latency)+'s</td></tr>').join("")||
     '<tr><td colspan="4">无坏例</td></tr>';
 }
+checkDeps();                                  // 进页面先探依赖，缺 Ollama 直接提示
+setInterval(checkDeps,30000);                 // 每 30 秒复探（Ollama 掉线久了也提示）
 </script>
 </body>
 </html>

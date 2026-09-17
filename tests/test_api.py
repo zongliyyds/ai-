@@ -35,8 +35,18 @@ def fake_generate(question, context, model="qwen2.5:7b-instruct",
 def test_health():
     r = client.get("/health")
     assert r.status_code == 200
-    assert r.json()["status"] == "ok"
-    assert r.json()["vault_readonly"] is True
+    d = r.json()
+    assert d["status"] in ("ok", "degraded")      # 取决于本机 Ollama 是否在跑
+    assert d["vault_readonly"] is True
+    assert "ollama" in d["deps"] and "ok" in d["deps"]["ollama"]
+    assert isinstance(d["ready"], bool)
+
+
+def test_health_reports_ollama_down(monkeypatch):
+    monkeypatch.setattr(api_main, "ollama_status", lambda timeout=2.0: (False, [], "connection refused"))
+    d = client.get("/health").json()
+    assert d["status"] == "degraded" and d["ready"] is False
+    assert d["deps"]["ollama"]["ok"] is False
 
 
 def test_index_page():
@@ -46,9 +56,49 @@ def test_index_page():
     assert "问答" in r.text and "分析看板" in r.text
 
 
+# ---- 依赖故障：必须是结构化 JSON，而不是纯文本 500 ----
+
+def test_deps_endpoint_shape():
+    d = client.get("/deps").json()
+    assert isinstance(d["ready"], bool)
+    names = [c["name"] for c in d["checks"]]
+    assert any("Ollama" in n for n in names) and len(d["checks"]) == 3
+
+
+def test_ask_returns_json_503_when_ollama_down(monkeypatch):
+    """Ollama 掉线时 /ask 必须回 503 + JSON detail（前端才能显示原因，不再 SyntaxError）。"""
+    monkeypatch.setattr(api_main, "ollama_status",
+                        lambda timeout=2.0: (False, [], "WinError 10061 积极拒绝"))
+    r = client.post("/ask", json={"query": "java", "top_k": 8, "mode": "hybrid"})
+    assert r.status_code == 503
+    assert r.headers["content-type"].startswith("application/json")
+    d = r.json()["detail"]
+    assert d["error"] == "ollama_unreachable"
+    assert "ollama serve" in d["hint"]
+    assert "Ollama" in d["message"]
+
+
+def test_search_returns_json_503_when_ollama_down(monkeypatch):
+    monkeypatch.setattr(api_main, "ollama_status",
+                        lambda timeout=2.0: (False, [], "refused"))
+    r = client.post("/search", json={"query": "java", "mode": "hybrid"})
+    assert r.status_code == 503
+    assert r.json()["detail"]["error"] == "ollama_unreachable"
+
+
+def test_ask_reports_missing_model(monkeypatch):
+    monkeypatch.setattr(api_main, "ollama_status",
+                        lambda timeout=2.0: (True, ["qwen2.5-coder:7b"], ""))
+    r = client.post("/ask", json={"query": "java"})
+    assert r.status_code == 503
+    d = r.json()["detail"]
+    assert d["error"] == "model_missing" and "bge-m3" in d["message"]
+
+
 # ---- /search ----
 
 def test_search_endpoint(monkeypatch):
+    monkeypatch.setattr(api_main, "ollama_status", lambda timeout=2.0: (True, ["bge-m3", "qwen2.5:7b-instruct"], ""))
     monkeypatch.setattr(api_main, "search",
                         lambda q, top_k=10, mode="hybrid": [make_hit()])
     r = client.post("/search", json={"query": "测试", "top_k": 5, "mode": "hybrid"})
@@ -69,6 +119,7 @@ def test_search_reject_bad_mode():
 # ---- /ask（检索与生成打桩） ----
 
 def test_ask_endpoint(monkeypatch):
+    monkeypatch.setattr(api_main, "ollama_status", lambda timeout=2.0: (True, ["bge-m3", "qwen2.5:7b-instruct"], ""))
     monkeypatch.setattr(api_main, "search",
                         lambda q, top_k=10, mode="hybrid": [make_hit(), make_hit(rel="b.md")])
     monkeypatch.setattr("vaultmind.llm.generator.generate", fake_generate)
@@ -87,6 +138,7 @@ def test_ask_endpoint(monkeypatch):
 
 
 def test_ask_invalid_citation(monkeypatch):
+    monkeypatch.setattr(api_main, "ollama_status", lambda timeout=2.0: (True, ["bge-m3", "qwen2.5:7b-instruct"], ""))
     monkeypatch.setattr(api_main, "search",
                         lambda q, top_k=10, mode="hybrid": [make_hit()])
     monkeypatch.setattr("vaultmind.llm.generator.generate",
@@ -99,6 +151,7 @@ def test_ask_invalid_citation(monkeypatch):
 
 
 def test_ask_refusal(monkeypatch):
+    monkeypatch.setattr(api_main, "ollama_status", lambda timeout=2.0: (True, ["bge-m3", "qwen2.5:7b-instruct"], ""))
     monkeypatch.setattr(api_main, "search",
                         lambda q, top_k=10, mode="hybrid": [make_hit()])
     monkeypatch.setattr("vaultmind.llm.generator.generate",
