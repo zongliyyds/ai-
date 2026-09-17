@@ -3,6 +3,14 @@
 > 约定：每个节点验收通过后追加一条；格式：`日期 · 节点 | 做了什么 | 验证结果 | 遗留与下一步`。
 > AI 会话开工必读本文件 + `PLAN.md`；节点收尾必须回来追加。
 
+## 2026-09-17 · 启动器重构：bat 只做最简转发，逻辑全进 launcher.py
+
+- **背景**：用户反馈「双击 run_api.bat 无反应、页面打不开」。查知识库得正解（《Windows Python 项目启动器模式》《CET-4 启动器闪退修复》）：**不要把复杂逻辑塞进批处理**。
+- **做了什么**：①新增 `launcher.py`（主入口）——TCP 探测端口 → 后台常驻起 uvicorn（`CREATE_NO_WINDOW|CREATE_NEW_PROCESS_GROUP|DETACHED_PROCESS`，stdin=DEVNULL）→ **轮询 `/health` 判就绪**（不再 sleep 赌 3 秒）→ 开浏览器 → 自身退出；失败显示返回码 + `data/api_server.log` 尾部；无控制台时用 MessageBox 弹窗；②新增 `stop_api.bat`/`launcher.py --stop`：先确认 `/health` 是本服务再 `taskkill /T /F`，不误杀；③`run_api.bat` 缩到 4 行且**纯 ASCII**；④`search.bat` 补无参数交互与 pause；⑤坑位写进 `docs/AI工作手册.md` 新增 §7b。
+- **三条实测根因**：①`netstat -ano` 本机报「Not enough memory resources」且输出为空 → 判端口误判（服务在监听仍返回退出码 1）；②**bat 含 UTF-8 中文注释会触发杂散报错**（cmd 按 GBK 解析；同一逻辑全 ASCII 即干净，实测对照）；③服务与窗口耦合成假死——launcher 起服务后若阻塞在 `input()`/`pause`，会出现「端口在监听但 `/health` 被拒」的半启动态（已改为服务脱离窗口 + 启动器立即退出）。
+- **验证结果**：`cmd /c run_api.bat` 冷启动全绿（就绪 → 开浏览器 → 端口 8000 LISTENING → `/health` 200 → `/stats` docs=163/chunks=1289/links=435）；`stop_api.bat` 实测停止（PID 1808 → 端口 free）；`search.bat` 检索命中 3 条。
+- **遗留与下一步**：用户侧：录屏 3 分钟（7 幕）、简历贴新数字。AI 侧 W4 追加实验（M6b 分块粒度、本地 vs 云端、联网 B/C S1 Bing 探测）。
+
 ## 2026-09-17 · 修复 run_api.bat 双击无反应（端口检测不可靠）
 
 - **做了什么**：`run_api.bat` 端口检测由 `netstat|findstr` 改为 Python `socket.connect_ex` TCP 探测；启动输出落盘 `data/api_server.log`、异常时显示返回码 + 日志尾部（不再静默秒退）；窗口文案明确「关窗=停服务」。`search.bat` 改为无参数时交互式提问、跑完 `pause` 不闪退（检索不需要启动服务）。

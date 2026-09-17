@@ -114,7 +114,18 @@ D:\RAG\docs\立项书-详细版.md      ← 完整设计（按需）
 | 网络 | HuggingFace ❌ → 用 ModelScope；GitHub 直连超时 → gh-proxy.com 镜像；PyPI ✅ |
 | 硬件 | RTX 4050 Laptop 6GB + 32GB 内存；C 盘剩 47GB（勿放模型）、D 盘剩 ~133GB |
 | 模型 | 已齐：bge-m3（embedding）+ qwen2.5:7b-instruct（生成）+ qwen2.5-coder:7b，均在 `D:\本地模型` |
-| 服务/bat | 双击 bat 秒退的常见根因=端口被后台服务占用（uvicorn 报错即关窗）；bat 必须做端口检测+失败不秒退；服务探活 `curl.exe -s http://127.0.0.1:8000/health`、Ollama 探活 `curl.exe -s http://127.0.0.1:11434/api/tags`（exit 7=掉线） |
+| 服务/bat | **启动逻辑一律放 `launcher.py`，bat 只做最简转发且必须纯 ASCII**（2026-09-17 修复，见 §7b）；服务探活 `curl.exe -s http://127.0.0.1:8000/health`、Ollama 探活 `curl.exe -s http://127.0.0.1:11434/api/tags`（exit 7=掉线） |
+
+## 7b. 本机启动器事实（2026-09-17 实测，来自知识库《Windows Python 项目启动器模式》）
+
+本机踩实的三条，写 bat 前必读：
+
+1. **`netstat -ano` 不可靠**：本机实测报 `Not enough memory resources` 且输出为空 → 用它判端口会误判（服务在监听也返回退出码 1）。判端口一律 `socket.connect_ex(("127.0.0.1", port)) == 0`。
+2. **bat 文件必须纯 ASCII**：cmd 按 OEM/GBK 码页解析批处理，UTF-8 中文注释会产生 `'xxx' is not recognized as an internal or external command` 之类的杂散报错（实测：同一逻辑，含中文注释就报错、全 ASCII 就干净）。要中文提示就写进 `launcher.py`（Python 输出不受码页影响）。
+3. **服务与窗口必须解耦**：`launcher.py` 用 `Popen(..., creationflags=CREATE_NO_WINDOW|CREATE_NEW_PROCESS_GROUP|DETACHED_PROCESS, stdin=DEVNULL, close_fds=True)` 起 uvicorn，随后**自身立即退出**；否则窗口里的 `input()`/`pause` 会阻塞，出现"端口在监听但 /health 被拒"的假死（实测踩到：launcher 起了服务却卡在等待，服务处于半启动态）。
+
+配套入口：`run_api.bat`（双击启动）→ `launcher.py`（TCP 探测端口 → 起服务 → 轮询 `/health` 就绪 → 开浏览器 → 退出）；`stop_api.bat` → `launcher.py --stop`（先确认 `/health` 是本服务再 `taskkill /T /F`，避免误杀）。日志 `data/api_server.log`。
+
 
 ## 8. 常用命令速查
 
@@ -129,7 +140,9 @@ D:\python\python.exe -m vaultmind.ingest          # 只读扫描 + 重建索引
 D:\python\python.exe -m vaultmind.search --build-vectors   # 全量向量化（bge-m3，断点续跑）
 D:\python\python.exe -m vaultmind.search "问题" --top 5 --mode hybrid   # 检索调试
 D:\python\python.exe -m vaultmind.eval            # 跑评测
-D:\python\python.exe -m uvicorn vaultmind.api.main:app --reload
+D:\python\python.exe launcher.py                  # 启动 Web 服务（=双击 run_api.bat）：探测端口→起服务→等 /health→开浏览器→退出
+D:\python\python.exe launcher.py --stop           # 停止服务（=双击 stop_api.bat）
+D:\python\python.exe launcher.py --no-browser     # 只起服务不开浏览器（自动化用）
 D:\python\python.exe -m pytest                    # 测试
 
 # git（工作区 D:\RAG）
