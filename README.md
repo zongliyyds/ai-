@@ -12,12 +12,14 @@
 | Recall@10 | 0.8333 | — | — | `reports/baseline.md` |
 | MRR | **0.7099** | ≥0.65 | ✅ | `reports/baseline.md` |
 | nDCG@10 | **0.7406** | ≥0.70 | ✅ | `reports/baseline.md` |
-| 平均延迟 | 0.244 s/查询 | — | — | `reports/baseline.md` |
+| 平均延迟 | 0.343 s/查询 | — | — | `reports/baseline.md` |
 | 引用可追溯 | 非法引用编号 = 0 | 100% | ✅ | `reports/m4_smoke.md` |
 | 超纲拒答 | 2/2 探针拒答 | 拒答 | ✅ | `reports/m4_smoke.md` |
 | 消融实验 | 6 组 × 60 gold | 基线复现闸门 | ✅ | `reports/ablation.md` |
+| 分块粒度消融 | 6 变体 × 60 gold | 基线复现闸门 | ✅ | `reports/m6b_chunk_ablation.md` |
 
-> 复现命令：`python -m vaultmind.eval`（60 条 hybrid 基线）；`python scripts\m6_ablation.py`（六组消融，约 10~20 分钟）。
+> 复现命令：`python -m vaultmind.eval`（60 条 hybrid 基线）；`python scripts\m6_ablation.py`（六组消融，约 10~20 分钟）；`python scripts\m6b_chunk_ablation.py`（分块粒度消融，约 2~6 分钟）。
+> **候选改进（M6b 实测，尚未采纳）**：把元数据前缀真正并入索引文本（`prefix_mode=inline`）可让 R@5 0.8167 → **0.9167**、hard 档 0.5833 → **0.7917**；粗粒度（文档级/1500）另得 +0.0333。正式管道未改动，待决策。
 > 数字诚实原则：评测集构建方法、坏例账本（11 题未进 Top-5）、三组负/中性消融结果全部记录在 reports/。
 
 ## 架构
@@ -40,15 +42,17 @@ D:\RAG\data\vaultmind.db        ← docs(168)/chunks(1321)/links(460) + FTS5(jie
         ▼
 评测层  60 条 gold（分层抽样定稿，seed=42 可复现）→ Recall@k/MRR/nDCG/延迟
         + 六组消融（三路单拆/RRF k/查询改写/标题重排/1-hop/规模曲线）
+        + 分块粒度消融（6 变体：粒度 3 档 × 前缀注入 2 态 × 组合）
 ```
 
 ## 核心特性
 
-- **结构感知分块**：H2 为单元、超 600 字按 H3/段落二切、`[文档|章节|标签]` 前缀注入
+- **结构感知分块**：H2 为单元、超 600 字按 H3/段落二切、`[文档|章节|标签]` 前缀注入（M6b 消融实测：该前缀此前**未接入检索信号**、仅用于展示，接入后 R@5 +0.10 —— 见 `reports/m6b_chunk_ablation.md`）
 - **混合检索**：SQLite FTS5 BM25 + numpy 暴力 cosine → RRF 融合（消融验证：融合 R@5 +0.05 正增益）
 - **带引用问答**：每个陈述标注 `[S#]`，引用可点击跳回 Obsidian 原笔记；引用校验 100% 可追溯
 - **超纲拒答**：提示词约束 + 规则校验双层；"知识库没有"就直说，不编造
 - **自建评测集**：220 候选池结构派生（不用 LLM 生成问题防自欺）→ 分层抽样定稿 60 条，seed=42 重跑逐字节一致
+- **分块粒度消融（M6b）**：粒度 3 档 × 前缀注入 2 态 × 组合共 6 变体 —— 细粒度反而 **-0.0333**、粗粒度 **+0.0333**、前缀入检索 **+0.1000**（hard 档 +0.2083），并定位到「H2 标题在切块时被剥离出正文」这一真因
 - **六组消融**：负结果如实记录（查询改写、1-hop 扩展均不上线），规模曲线验证"零向量库"决策
 
 ## 快速开始（Windows 实测环境）
@@ -96,13 +100,13 @@ D:\python\python.exe scripts\sync_vault.py          # 只看不改：--dry-run�
 |---|---|
 | `vaultmind/ingest|retrieval|llm|eval|api` | 主包（管道/检索/生成/评测/产品层） |
 | `eval/gold_set.jsonl` | 60 条 gold 评测集（approved） |
-| `reports/` | audit 体检 / baseline 基线 / ablation 消融 / sync_report 同步报告 / m4_smoke / gold_finalization / knowledge_drafts 知识卡片 |
+| `reports/` | audit 体检 / baseline 基线 / ablation 消融 / m6b_chunk_ablation 分块粒度消融 / sync_report 同步报告 / m4_smoke / gold_finalization / knowledge_drafts 知识卡片 |
 | `docs/` | 立项书、AI 工作手册、各节点工单、简历 bullet、Q&A 预案、求职收尾清单 |
-| `tests/` | pytest 63 条（冒烟 + 探针 + 回归；pre-commit 钩子拦截坏提交） |
-| `scripts/` | 一键复现（**sync_vault** / finalize_gold / m4_smoke / m5_smoke / m6_ablation / env_check / package_repo / make_interview_pdf） |
+| `tests/` | pytest 79 条（冒烟 + 探针 + 回归；pre-commit 钩子拦截坏提交） |
+| `scripts/` | 一键复现（**sync_vault** / finalize_gold / m4_smoke / m5_smoke / m6_ablation / **m6b_chunk_ablation** / env_check / package_repo / make_interview_pdf） |
 
 ## 测试
 
 ```powershell
-D:\python\python.exe -m pytest tests -q    # 63 passed
+D:\python\python.exe -m pytest tests -q    # 79 passed
 ```

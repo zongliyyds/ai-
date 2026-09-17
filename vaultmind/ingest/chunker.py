@@ -67,8 +67,21 @@ def _split_paras(text: str, max_chars: int = CHUNK_MAX_CHARS) -> list[str]:
     return parts
 
 
-def chunk_doc(doc: Doc) -> list[Chunk]:
-    """把一篇笔记切成带上下文前缀的 chunk 列表。"""
+def chunk_doc(doc: Doc, granularity: str = "h2", max_chars: int = CHUNK_MAX_CHARS,
+              prefix_mode: str = "field") -> list[Chunk]:
+    """把一篇笔记切成带上下文前缀的 chunk 列表。
+
+    默认参数 = 正式管道行为（M6b 分块粒度消融只通过传参改变分块，正式路径零改动）。
+
+    granularity：
+    - "h2"（默认，= 正式管道）：以 H2 为单元，超长按 H3/段落二次切分
+    - "h3"：H3 优先的细粒度切分（每个 H2 小节都下钻到 H3）
+    - "doc"：整篇文档为一块（超长按段落硬切到 max_chars）——最粗粒度
+    prefix_mode：
+    - "field"（默认，= 正式管道）：前缀只写入 prefix 字段（该字段**不参与** FTS/向量信号）
+    - "inline"：前缀并入 text → 进入 FTS tokens 与向量嵌入，即「前缀真正被检索」
+    - "none"：不注入前缀
+    """
     chunks: list[Chunk] = []
     if not doc.body.strip():
         return chunks
@@ -79,9 +92,46 @@ def chunk_doc(doc: Doc) -> list[Chunk]:
         text = text.strip()
         if not text:
             return
-        chunks.append(Chunk(doc.rel, section, seq, _prefix(doc, section), text))
+        prefix = _prefix(doc, section) if prefix_mode != "none" else ""
+        if prefix_mode == "inline" and prefix:
+            chunks.append(Chunk(doc.rel, section, seq, "", prefix + "\n" + text))
+        else:
+            chunks.append(Chunk(doc.rel, section, seq, prefix, text))
         seq += 1
 
+    def emit_pieces(section: str, text: str):
+        """按段落聚合切分后逐块发出（多块才带序号）。"""
+        pieces = _split_paras(text, max_chars)
+        for k, piece in enumerate(pieces, 1):
+            emit(section + (" (%d)" % k if len(pieces) > 1 else ""), piece)
+
+    if granularity == "doc":
+        emit_pieces("全文", doc.body)
+        return chunks
+
+    if granularity == "h3":
+        parts = H2_SPLIT_RE.split(doc.body)
+        pre = parts[0]
+        if pre.strip():
+            emit_pieces("概述", pre)
+        for i in range(1, len(parts), 2):
+            heading = parts[i].strip()
+            sec_body = parts[i + 1] if i + 1 < len(parts) else ""
+            if not sec_body.strip():
+                continue
+            sub = H3_SPLIT_RE.split(sec_body)
+            sub_pre = sub[0]
+            if sub_pre.strip():
+                emit_pieces(f"{heading} / 概述", sub_pre)
+            for j in range(1, len(sub), 2):
+                h3 = sub[j].strip()
+                t = sub[j + 1] if j + 1 < len(sub) else ""
+                if not t.strip():
+                    continue
+                emit_pieces(f"{heading} / {h3}", t)
+        return chunks
+
+    # granularity == "h2"：逐字保留正式管道逻辑，仅把长度上限参数化
     parts = H2_SPLIT_RE.split(doc.body)
     preamble = parts[0]
     if preamble.strip():
@@ -92,33 +142,33 @@ def chunk_doc(doc: Doc) -> list[Chunk]:
         sec_body = parts[i + 1] if i + 1 < len(parts) else ""
         if not sec_body.strip():
             continue
-        if len(sec_body) <= CHUNK_MAX_CHARS:
+        if len(sec_body) <= max_chars:
             emit(heading, sec_body)
             continue
         # 超长小节：按 H3 二次切分
         sub = H3_SPLIT_RE.split(sec_body)
         pre = sub[0]
         if pre.strip():
-            if len(pre) <= CHUNK_MAX_CHARS:
+            if len(pre) <= max_chars:
                 emit(f"{heading} / 概述", pre)
             else:
-                for k, piece in enumerate(_split_paras(pre), 1):
+                for k, piece in enumerate(_split_paras(pre, max_chars), 1):
                     emit(f"{heading} / 概述 ({k})", piece)
         for j in range(1, len(sub), 2):
             h3 = sub[j].strip()
             t = sub[j + 1] if j + 1 < len(sub) else ""
             if not t.strip():
                 continue
-            if len(t) <= CHUNK_MAX_CHARS:
+            if len(t) <= max_chars:
                 emit(f"{heading} / {h3}", t)
             else:
-                for k, piece in enumerate(_split_paras(t), 1):
+                for k, piece in enumerate(_split_paras(t, max_chars), 1):
                     emit(f"{heading} / {h3} ({k})", piece)
     return chunks
 
 
-def chunk_all(docs) -> list[Chunk]:
+def chunk_all(docs, **kwargs) -> list[Chunk]:
     out: list[Chunk] = []
     for d in docs:
-        out.extend(chunk_doc(d))
+        out.extend(chunk_doc(d, **kwargs))
     return out

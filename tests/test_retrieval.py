@@ -93,7 +93,7 @@ def test_cli_smoke_bm25(capsys):
 def test_cli_vector_index_missing_message(capsys, monkeypatch):
     from vaultmind.search import main
     monkeypatch.setattr(vector, "load_index",
-                        lambda: (_raise_missing(), []))
+                        lambda *a, **k: (_raise_missing(), []))
     rc = main(["测试", "--mode", "vector"])
     err = capsys.readouterr().err
     assert rc == 2

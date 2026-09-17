@@ -14,13 +14,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "tests"))
 
+from _doc_anchors import parse_report_metrics              # noqa: E402
 from vaultmind.eval.metrics import aggregate, first_rank  # noqa: E402
 from vaultmind.eval.runner import load_gold                  # noqa: E402
 from vaultmind.llm.rewrite import llm_rewrite, rule_rewrite  # noqa: E402
 from vaultmind.retrieval import bm25, search, vector         # noqa: E402
 
-BASELINE = {"recall@5": 0.8167, "mrr": 0.7096, "ndcg@10": 0.7403}
+# 基线锚点从 reports/baseline.md 现场解析，不手抄常量：
+# 语料增长（Vault 新增笔记）会让指标微动，硬编码常量会与报告口径漂移
+# （2026-09-17 体检发现：常量停在 0.7096/0.7403，报告已是 0.7099/0.7406）。
+_M = parse_report_metrics()
+BASELINE = {"recall@5": _M["recall@5"], "mrr": _M["mrr"], "ndcg@10": _M["ndcg@10"]}
 TOP_K = 10
 CACHE = ROOT / "eval" / "rewrites_cache.json"
 

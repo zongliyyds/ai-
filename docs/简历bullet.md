@@ -7,7 +7,8 @@
 - 独立设计并实现个人知识库 RAG 问答系统（**168 篇 / 30.0 万字 / 460 条双链**的 Obsidian 库）：结构感知分块 + SQLite FTS5 BM25 + bge-m3 向量 + RRF 混合检索，**自建 60 条 gold 评测集**，Recall@5 = **0.817**、MRR = **0.710**、nDCG@10 = **0.741**，三项全部达标（`reports/baseline.md`）。
 - 完成带引用生成的问答链路：本地 qwen2.5:7b 生成 + `[S#]` 引用校验（**非法引用 0**）+ 超纲拒答（探针 2/2），引用可跳回 Obsidian 原笔记（`reports/m4_smoke.md`）。
 - 六组消融实验量化每个组件增益：融合 vs 单路 R@5 +0.050、发现 R@1「顶部稀释」、**砍掉查询改写与 1-hop 两个无效组件**（负结果如实记录），规模曲线验证 1.3k chunks 下暴力点积 <1ms、零向量库成立（`reports/ablation.md`）。
-- 全程零 LangChain / 零 torch / 零向量数据库（FastAPI + SQLite + numpy）；pytest 60 条 + pre-commit 探针钩子 + git 逐节点快照；换机一键复现（`scripts/env_check.py` + README）。
+- 追加**分块粒度消融**（6 变体 × 60 条 gold，含基线复现闸门）：定位到「H2 标题在切块时被剥离出正文、元数据前缀又未接入检索信号」的实现缺陷，修复后 R@5 **0.817 → 0.917**、hard 档 **0.583 → 0.792**，并验证两个正因子不可叠加（`reports/m6b_chunk_ablation.md`）。
+- 全程零 LangChain / 零 torch / 零向量数据库（FastAPI + SQLite + numpy）；pytest 79 条 + pre-commit 探针钩子 + git 逐节点快照；换机一键复现（`scripts/env_check.py` + README）。
 
 ## 方向二：AI 数据分析（偏治理、归因、看板）
 
@@ -15,6 +16,7 @@
 - 设计**分层抽样的评测集构建方法**（220 候选池 → 按库目录×难度分层定稿 60 条，seed=42 可复现、SHA-256 版本化、目标章节可追溯率 100%），替代"随手挑题"的主观评测（`reports/gold_finalization.md`）。
 - 建立问答日志 + 四分类 badcase 归因闭环（检索漏召/上下文缺失/生成幻觉/问题超纲）→ 实时看板（`qa_logs` + `/metrics` `/badcases` 端点），并对 11 条坏例做分层归因（hard 档命中 58% vs easy 档 97%）定位优化靶点（`reports/baseline.md`）。
 - 用消融实验驱动决策：数据化否决「查询改写」与「图谱 1-hop」两个伪需求（负增益 -0.017~-0.067 / 中性 +0.000），给出条件化标题重排方案（标题重排 easy 档 100%）（`reports/ablation.md`）。
+- 用**正交消融做根因归因**（分块粒度 3 档 × 元数据前缀 2 态 × 组合共 6 变体）：细粒度 -0.033、粗粒度 +0.033、前缀入检索 +0.100；据此把「裸标题查询答不好」的根因从查询侧纠正到**索引侧丢了标题**，推翻上一轮实验的优化方向（`reports/m6b_chunk_ablation.md`）。
 
 ## 备选短句（一句话版）
 

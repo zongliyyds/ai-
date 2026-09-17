@@ -3,6 +3,17 @@
 > 约定：每个节点验收通过后追加一条；格式：`日期 · 节点 | 做了什么 | 验证结果 | 遗留与下一步`。
 > AI 会话开工必读本文件 + `PLAN.md`；节点收尾必须回来追加。
 
+## 2026-09-17 · W4 追加实验 M6b：分块粒度消融（查出「前缀未接入检索 + 标题被剥离」的真因）
+
+- **做了什么**：①**基建**——`chunker.chunk_doc/chunk_all` 新增三个可选参数 `granularity`(h2/h3/doc)、`max_chars`、`prefix_mode`(field/none/inline)，**默认值 = 现行行为**；`vector`/`bm25`/`search()` 新增 `db_path`/`npy_path`/`ids_path` 临时路径参数（默认 = 正式路径）；②**实验** `scripts/m6b_chunk_ablation.py`：6 变体 × 60 条 gold（V1 基线 / V2 细粒度 / V3 粗粒度 / V4 无前缀 / V5 前缀入检索 / V6 组合），每变体独立临时索引目录 + 重嵌入 + 基线复现闸门 + 检索文本指纹 + 逐题附录；③探针 `tests/test_m6b_chunk.py` 11 条（默认行为回归、粒度单调性、前缀三态、路径隔离、临时索引不触碰正式向量、脚本锚点防漂移）；④工单 `docs/工单-W4-M6b-分块粒度消融.md`。
+- **验证结果**：pytest **79/79**；**基线复现闸门通过**（V1 精确复现 0.8167 / 0.7099 / 0.7406）。结论：细粒度（H3/300，1703 块）R@5 **-0.0333**；粗粒度（文档级/1500，262 块）**+0.0333**；**前缀入检索 +0.1000（hard 档 0.5833 → 0.7917，+0.2083）**；组合变体 0.8333 **不叠加**（最优仍是 V5 的 0.9167）。**V1 与 V4 的「检索文本指纹」完全相同（`10991152b928`）** → 铁证：`prefix` 字段此前只进展示、不进 FTS tokens 与向量。逐题附录：15 题排名变化，**6 题从「未进 Top-5」被救回**（4 题从未进 Top10 直接进 Top-3）。
+- **根因（本轮最重要产出）**：切块拿 `## 标题` 当**分隔符**，标题文本被剥离出正文；而标题只写进不参与检索的 `prefix` → 裸标题查询（hard 档）在正文里没有任何字面锚点。**这解释了 M6 中查询改写（E3）与标题重排（E4）为何都救不回来：问题不在查询侧，而在索引侧丢了标题。**
+- **隔离验证**：新增常备校验工具 `scripts/verify_chunker_parity.py`，证明「新 chunker 默认分块与正式索引 1321 块逐字节一致」（`IDENTICAL`）→ 正式索引/向量零改动；探针亦断言临时索引写入不触碰正式向量产物。
+- **过程纠错**：V3 首版 max_chars=4000 撞上 bge-m3 经 Ollama 的默认 `num_ctx=4096`，首个 batch 即 `HTTP 400 the input length exceeds the context length` → 降为 1500 中文字符；**不为迁就它调大 num_ctx**（否则该变体嵌入配置与其他变体不同，破坏单一变量原则）。
+- **体检顺带修复**：①`scripts/m6_ablation.py` 的基线常量此前仍是手抄的 0.7096/0.7403（与 `reports/baseline.md` 的 0.7099/0.7406 漂移）→ 改为**现场解析**并加防漂移探针，PLAN 的旧锚点同步更正；②**打包体积核查**发现 `__pycache__/*.pyc` 混进交付包 → 白名单递归排除编译缓存并新增 `.pyc` 探针；③两份 PDF 因 TextWriter 默认嵌入**完整中文字体**而臃肿（面试手册 19.6MB / 迁移工作流 12.1MB）→ save 前加 `subset_fonts()`，降到 **205KB / 169KB**，交付包整体 **24.9MB → 587.5KB**。
+- **交付物**：`vaultmind/ingest/chunker.py`、`vaultmind/retrieval/{vector,bm25,__init__}.py`、`scripts/m6b_chunk_ablation.py`、`tests/test_m6b_chunk.py`、`reports/m6b_chunk_ablation.md`、工单、README/PLAN/简历 bullet/Q&A 预案同步（pytest 数字 63/68 → 79 一并更正）。
+- **遗留与下一步**：**V5 候选改动（前缀并入索引文本）待用户拍板**，未动正式管道——采纳需重跑 baseline/六组消融/PDF/简历数字并复核引用展示；AI 侧剩余 W4 追加实验：2-hop 图谱、本地 vs 云端、联网 B/C 的 S1 Bing 探测；长期候选：chunk 改内容哈希 ID。
+
 ## 2026-09-17 · 修「页面提问报 JSON 解析错误」：依赖掉线要优雅降级
 
 - **现象**：Web 问答页提问（java / hybrid / top_k=8）显示 `错误：SyntaxError: Unexpected token 'I', "Internal S"... is not valid JSON`。

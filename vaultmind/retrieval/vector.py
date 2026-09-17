@@ -8,6 +8,7 @@ r"""向量检索：Ollama bge-m3 全量向量化（断点续跑）+ numpy 暴力
 import json
 import sqlite3
 import time
+from pathlib import Path
 
 import httpx
 import numpy as np
@@ -20,6 +21,17 @@ EMB_URL = "http://127.0.0.1:11434/api/embed"
 EMB_NPY = DATA_DIR / "embeddings.npy"
 EMB_IDS = DATA_DIR / "chunk_ids.json"
 BATCH_SIZE = 32
+
+
+def _paths(db_path=None, npy_path=None, ids_path=None) -> tuple[Path, Path, Path]:
+    """解析索引库与向量产物路径（None = 正式路径）。
+
+    M6b 分块粒度消融传临时路径（data/ablation/m6b/<变体>/），
+    正式管道不传参 → 行为逐字不变。
+    """
+    return (Path(db_path) if db_path else Path(DB_PATH),
+            Path(npy_path) if npy_path else EMB_NPY,
+            Path(ids_path) if ids_path else EMB_IDS)
 
 
 class VectorIndexMissing(RuntimeError):
@@ -53,18 +65,24 @@ def load_chunk_texts(db_path=None) -> tuple[list[int], list[str]]:
     return ids, texts
 
 
-def build_embeddings(resume: bool = True, batch: int = BATCH_SIZE, limit: int | None = None) -> dict:
-    """全量向量化 chunks；resume=True 时跳过已完成行（断点续跑）。"""
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    ids, texts = load_chunk_texts()
+def build_embeddings(resume: bool = True, batch: int = BATCH_SIZE, limit: int | None = None,
+                     db_path=None, npy_path=None, ids_path=None) -> dict:
+    """全量向量化 chunks；resume=True 时跳过已完成行（断点续跑）。
+
+    db_path/npy_path/ids_path：索引库与向量产物路径（M6b 消融实验用临时路径，
+    默认 = 正式路径 → 正式管道行为不变）。
+    """
+    db, npy, ids_file = _paths(db_path, npy_path, ids_path)
+    npy.parent.mkdir(parents=True, exist_ok=True)
+    ids, texts = load_chunk_texts(db)
     if limit:
         ids, texts = ids[:limit], texts[:limit]
 
     done_ids = set()
     matrix = []
-    if resume and EMB_NPY.exists() and EMB_IDS.exists():
-        done_ids = set(json.loads(EMB_IDS.read_text(encoding="utf-8")))
-        matrix = list(np.load(EMB_NPY))
+    if resume and npy.exists() and ids_file.exists():
+        done_ids = set(json.loads(ids_file.read_text(encoding="utf-8")))
+        matrix = list(np.load(npy))
         print("断点续跑：已完成 %d 行，续跑剩余部分" % len(done_ids))
 
     todo = [(i, t) for i, t in zip(ids, texts) if i not in done_ids]
@@ -75,32 +93,33 @@ def build_embeddings(resume: bool = True, batch: int = BATCH_SIZE, limit: int | 
         emb = _normalize(embed_texts(texts_b))
         matrix.extend(emb)
         done_ids.update(i for i, _ in chunk)
-        np.save(EMB_NPY, np.asarray(matrix, dtype=np.float32))
-        EMB_IDS.write_text(json.dumps(sorted(done_ids)), encoding="utf-8")
+        np.save(npy, np.asarray(matrix, dtype=np.float32))
+        ids_file.write_text(json.dumps(sorted(done_ids)), encoding="utf-8")
         print("  已向量化 %d/%d（%.1fs）" % (len(done_ids), len(ids), time.time() - t0))
 
     stats = {
         "total_chunks": len(ids),
         "embedded": len(done_ids),
         "dim": 1024,
-        "npy": str(EMB_NPY),
-        "ids_json": str(EMB_IDS),
+        "npy": str(npy),
+        "ids_json": str(ids_file),
     }
     return stats
 
 
-def load_index() -> tuple[np.ndarray, list[int]]:
-    if not (EMB_NPY.exists() and EMB_IDS.exists()):
+def load_index(db_path=None, npy_path=None, ids_path=None) -> tuple[np.ndarray, list[int]]:
+    db, npy, ids_file = _paths(db_path, npy_path, ids_path)
+    if not (npy.exists() and ids_file.exists()):
         raise VectorIndexMissing(
             "向量索引缺失。请先执行 D:\\python\\python.exe -m vaultmind.search --build-vectors")
-    m = np.load(EMB_NPY)
-    ids = json.loads(EMB_IDS.read_text(encoding="utf-8"))
+    m = np.load(npy)
+    ids = json.loads(ids_file.read_text(encoding="utf-8"))
     if len(m) != len(ids):
         raise VectorIndexMissing("向量矩阵与 id 映射行数不一致，请重建向量索引")
     # 一致性闸门：id 映射必须与索引库当前 chunk 行号逐位一致。
     # chunk.id 是自增 rowid（位置性 ID），重建索引后行号错位会导致向量
     # 「张冠李戴」、检索静默退化——宁可报错也不返回脏结果（2026-09-17 事故根因）。
-    con = sqlite3.connect(str(DB_PATH))
+    con = sqlite3.connect(str(db))
     db_ids = [r[0] for r in con.execute("SELECT id FROM chunks ORDER BY id")]
     con.close()
     if ids != db_ids:
@@ -110,9 +129,11 @@ def load_index() -> tuple[np.ndarray, list[int]]:
     return m, ids
 
 
-def search_vector(query: str, top_k: int = 10, frac: float = 1.0) -> list[SearchHit]:
+def search_vector(query: str, top_k: int = 10, frac: float = 1.0,
+                  db_path=None, npy_path=None, ids_path=None) -> list[SearchHit]:
     """frac：语料切片比例（M6 规模-延迟曲线用，默认 1.0=全量）。"""
-    m, ids = load_index()
+    db, npy, ids_file = _paths(db_path, npy_path, ids_path)
+    m, ids = load_index(db, npy, ids_file)
     if 0.0 < frac < 1.0:
         cut = max(1, int(len(m) * frac))
         m, ids = m[:cut], ids[:cut]
@@ -124,7 +145,7 @@ def search_vector(query: str, top_k: int = 10, frac: float = 1.0) -> list[Search
         order = np.argpartition(-scores, top_k - 1)[:top_k]
         order = order[np.argsort(-scores[order])]
 
-    con = sqlite3.connect(str(DB_PATH))
+    con = sqlite3.connect(str(db))
     hits = []
     for idx in order:
         cid = ids[int(idx)]

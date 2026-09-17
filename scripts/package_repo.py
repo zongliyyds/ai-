@@ -26,7 +26,7 @@ INCLUDE = [
     "docs/",
 ]
 REPORT_INCLUDE = [  # 报告仅收录不含 Vault 摘录的
-    "baseline.md", "ablation.md", "m4_smoke.md", "gold_finalization.md",
+    "baseline.md", "ablation.md", "m6b_chunk_ablation.md", "m4_smoke.md", "gold_finalization.md",
     "audit_report.md", "m2_selfcheck.md", "sync_report.md",
 ]
 GOLD_STRIP_FIELDS = ("answer_points",)  # gold 分发版剔除正文摘录
@@ -50,6 +50,9 @@ def main() -> int:
         shutil.rmtree(tmp)
     tmp.mkdir()
 
+    SKIP_DIRS = {"__pycache__", ".pytest_cache", ".git"}
+    SKIP_SUFFIX = (".pyc", ".pyo")
+
     def copy_rel(rel: str):
         src = ROOT / rel
         if not src.exists():
@@ -57,10 +60,15 @@ def main() -> int:
             return
         if src.is_dir():
             for p in sorted(src.rglob("*")):
-                if p.is_file():
-                    dst = tmp / rel / p.relative_to(src)
-                    dst.parent.mkdir(parents=True, exist_ok=True)
-                    dst.write_bytes(p.read_bytes())
+                if not p.is_file():
+                    continue
+                # 编译缓存/测试缓存不进交付包（2026-09-17 打包体积核查发现）
+                if p.suffix in SKIP_SUFFIX or any(
+                        part in SKIP_DIRS for part in p.relative_to(src).parts):
+                    continue
+                dst = tmp / rel / p.relative_to(src)
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                dst.write_bytes(p.read_bytes())
         else:
             dst = tmp / rel
             dst.parent.mkdir(parents=True, exist_ok=True)
@@ -82,6 +90,9 @@ def main() -> int:
         if not p.is_file():
             continue
         rel = str(p.relative_to(tmp))
+        if p.suffix in (".pyc", ".pyo"):
+            bad.append((rel, "编译缓存(.pyc)进了包"))
+            continue
         if "AI-Knowledge-Vault" in rel:
             bad.append((rel, "文件名含 Vault 名"))
             continue

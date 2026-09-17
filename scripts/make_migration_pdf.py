@@ -379,6 +379,10 @@ doc.close()
 
 N_TOTAL = n
 doc = build()
+try:
+    doc.subset_fonts()   # 只嵌入用到的字形：否则单份文档会带上 ~12MB 的完整中文字体
+except Exception as e:   # pragma: no cover - 依 PyMuPDF 版本行为而定
+    print("[WARN] subset_fonts 失败（%s），输出完整字体" % e)
 doc.save(OUT, garbage=4, deflate=True)
 print("PDF 已生成:", OUT)
 print("页数:", n)

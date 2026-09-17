@@ -14,18 +14,23 @@ from vaultmind.retrieval import rerank as rerank_mod           # noqa: E402
 
 def search(query: str, top_k: int = 10, mode: str = "hybrid",
            rrf_k: int = 60, rerank: str | None = None,
-           expand_links: int = 0) -> list[SearchHit]:
+           expand_links: int = 0,
+           db_path=None, npy_path=None, ids_path=None) -> list[SearchHit]:
     """统一检索入口。
 
     mode: bm25（FTS5 关键词）/ vector（bge-m3 余弦）/ hybrid（RRF 融合，默认）
+    db_path/npy_path/ids_path: 索引库与向量产物路径（M6b 消融的临时索引用；
+    默认 None = 正式路径，正式管道行为不变）
     """
     if mode == "bm25":
-        return bm25.search_bm25(query, top_k=top_k)
+        return bm25.search_bm25(query, top_k=top_k, db_path=db_path)
     if mode == "vector":
-        return vector.search_vector(query, top_k=top_k)
+        return vector.search_vector(query, top_k=top_k, db_path=db_path,
+                                    npy_path=npy_path, ids_path=ids_path)
     if mode == "hybrid":
-        b = bm25.search_bm25(query, top_k=60)
-        v = vector.search_vector(query, top_k=60)
+        b = bm25.search_bm25(query, top_k=60, db_path=db_path)
+        v = vector.search_vector(query, top_k=60, db_path=db_path,
+                                 npy_path=npy_path, ids_path=ids_path)
         fused = fusion.rrf_fuse([b, v], k=rrf_k)
         if rerank == "title":
             fused = rerank_mod.title_boost(fused, query)

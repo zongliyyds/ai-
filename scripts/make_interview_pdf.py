@@ -166,8 +166,36 @@ def _load_ablation():
     return out
 
 
+def _load_m6b():
+    """从 reports/m6b_chunk_ablation.md 现场解析 6 变体指标（防手抄漂移）。"""
+    import re as _re
+
+    ws = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.join(ws, "reports", "m6b_chunk_ablation.md")
+    out = {}
+    if not os.path.exists(path):
+        return out
+    pat = _re.compile(
+        r"\|\s*(V\d)[^|]*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*([0-9.]+)\s*\|\s*"
+        r"([0-9.]+)\s*\|\s*([0-9.]+)\s*\|\s*([0-9.]+)\s*\|\s*([0-9.]+)\s*\|")
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            mm = pat.match(line)
+            if mm:
+                out[mm.group(1)] = {
+                    "chunks": int(mm.group(2)), "avglen": int(mm.group(3)),
+                    "r5": float(mm.group(5)), "mrr": float(mm.group(7)),
+                    "ndcg": float(mm.group(8)),
+                }
+    return out
+
+
 ABL = _load_ablation()
 FAMILY = ABL.get("fam", {})
+M6B = _load_m6b()
+M6B_LABEL = {"V1": "V1 基线 h2/600", "V2": "V2 细粒度 h3/300",
+             "V3": "V3 粗粒度 整篇/1500", "V4": "V4 无前缀（对照）",
+             "V5": "V5 前缀入检索", "V6": "V6 组合 粗+前缀"}
 GIT = git_short()
 
 
@@ -344,7 +372,8 @@ def build(total=None) -> fitz.Document:
          ["消融实验", "6 组 × 60 gold", "基线闸门", "✅", "reports/ablation.md"]],
         widths)
     b.space(4)
-    b.text("复现：python -m vaultmind.eval（基线）｜ python scripts\\m6_ablation.py（消融）",
+    b.text("复现：python -m vaultmind.eval（基线）｜ python scripts\\m6_ablation.py（消融）"
+           "｜ python scripts\\m6b_chunk_ablation.py（分块粒度消融）",
            size=9.5, color=GRAY)
 
     # ---- 2 架构 ----
@@ -399,6 +428,38 @@ def build(total=None) -> fitz.Document:
            % (FAMILY["easy"][0] * 100, FAMILY["hard"][0] * 100),
            size=10, color=DARK, bold=True)
 
+    # ---- 3b 分块粒度消融（M6b） ----
+    if M6B:
+        b.new_page()
+        b.heading("3b · 分块粒度消融（M6b：查出「标题被剥离 + 前缀没进检索」）")
+        rows = []
+        for k in sorted(M6B):
+            m = M6B[k]
+            rows.append([M6B_LABEL.get(k, k), "%d 块 / %d 字" % (m["chunks"], m["avglen"]),
+                         "%.4f" % m["r5"], "%.4f" % m["mrr"], "%.4f" % m["ndcg"]])
+        b.table(["变体（分块策略）", "规模", "R@5", "MRR", "nDCG@10"],
+                rows, [200, 108, 55, 55, 65.28], size=9)
+        b.space(6)
+        v1 = M6B.get("V1")
+        v5 = M6B.get("V5")
+        v6 = M6B.get("V6", v1)
+        if v1 and v5 and M6B.get("V2") and M6B.get("V3"):
+            b.text("结论：细粒度 %.4f（%+.4f）｜粗粒度 %.4f（%+.4f）｜前缀入检索 %.4f（%+.4f）｜"
+                   "组合 %.4f 不叠加 → 最优是 V5「前缀入检索」。"
+                   % (M6B["V2"]["r5"], M6B["V2"]["r5"] - v1["r5"],
+                      M6B["V3"]["r5"], M6B["V3"]["r5"] - v1["r5"],
+                      v5["r5"], v5["r5"] - v1["r5"], v6["r5"]),
+                   size=10, color=DARK, bold=True)
+            b.space(4)
+        b.text("根因（本轮最重要产出）：切块拿「## 标题」当分隔符，标题文本被剥离出正文；"
+               "而标题只写进不参与 FTS/向量检索的 prefix 字段 → 裸标题查询在正文里没有任何字面锚点。"
+               "这正是上一轮「查询改写」「标题重排」都救不回来的真因：问题不在查询侧，而在索引侧丢了标题。",
+               size=10)
+        b.space(4)
+        b.text("铁证：V1（前缀进字段）与 V4（无前缀）的「检索文本指纹」完全相同 → 前缀此前对检索零贡献。"
+               "正式基线未改动（仍为 %s），V5 属候选改进，待拍板。"
+               % ANCHOR.get("recall@5", "-"), size=10, color=GRAY)
+
     # ---- 4 高频 Q&A ----
     b.new_page()
     b.heading("4 · 高频面试问题与答法（节选，全文见 docs/Q&A预案.md）")
@@ -446,8 +507,13 @@ def build(total=None) -> fitz.Document:
          ["%+.4f / %+.3f / %+.3f / %+.4f" % (FAMILY.get("gain", 0.0), FAMILY.get("rew_r", 0.0),
                                                    FAMILY.get("rew_l", 0.0), FAMILY.get("hop", 0.0)),
           "消融增益与负结果", "ablation.md"],
+         ["分块粒度消融 %s" % ("｜".join("%+.4f" % (M6B[k]["r5"] - M6B["V1"]["r5"])
+                                    for k in ("V2", "V3", "V5"))
+                              if (M6B.get("V1") and M6B.get("V2") and M6B.get("V3")
+                                  and M6B.get("V5")) else "-"),
+          "M6b：细/粗/前缀入检索（候选）", "m6b_chunk_ablation.md"],
          ["点积 <1ms · embedding ~280ms", "规模曲线 → 零向量库", "ablation.md E6"],
-         ["pytest 60 条 · pre-commit 钩子", "三层防线", "tests/"]],
+         ["pytest 79 条 · pre-commit 钩子", "三层防线", "tests/"]],
         [200, 168, 115.28], size=9)
     b.space(8)
     b.heading("复现与演示", level=2)
@@ -467,13 +533,22 @@ def main() -> int:
     n = len(first)
     first.close()
     second = build(total=n)     # 第二遍：带页脚正式输出
-    second.save(OUT)
+    # 字体子集化 + 压缩：TextWriter 默认嵌入完整中文字体，7 页 PDF 会因此膨胀到 ~19MB；
+    # subset_fonts 只保留用到的字形（失败则退回完整字体，不影响正确性）。
+    try:
+        second.subset_fonts()
+    except Exception as e:  # pragma: no cover - 依 PyMuPDF 版本行为而定
+        print("[WARN] subset_fonts 失败（%s），输出完整字体" % e)
+    second.save(OUT, garbage=4, deflate=True)
     second.close()
     # 校验：可打开、可提取中文、含关键数字
     check = fitz.open(OUT)
     text = "".join(p.get_text() for p in check)
     for key in ("recall@5", "mrr", "ndcg@10"):
         assert ANCHOR.get(key) in text, "PDF 文本层缺少锚点 %s=%s" % (key, ANCHOR.get(key))
+    if M6B.get("V5"):
+        assert ("%.4f" % M6B["V5"]["r5"]) in text, "PDF 文本层缺少 M6b V5 的 R@5"
+        assert ("%+.4f" % (M6B["V5"]["r5"] - M6B["V1"]["r5"])) in text, "PDF 缺少 M6b 增益"
     print("[PASS] 生成完成：%s（%d 页，含关键指标数字）" % (OUT, n))
     return 0
 
