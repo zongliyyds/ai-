@@ -1,19 +1,19 @@
 # VaultMind 知识库体检报告
 
-> 生成时间：2026-09-17 09:39 ｜ 数据源（只读）：`D:\AI-Knowledge-Vault\AI-Knowledge-Vault` ｜ 复现命令：`D:\python\python.exe -m vaultmind.ingest`
+> 生成时间：2026-09-17 14:36 ｜ 数据源（只读）：`D:\AI-Knowledge-Vault\AI-Knowledge-Vault` ｜ 复现命令：`D:\python\python.exe -m vaultmind.ingest`
 
 ## 1. 规模概览与基线对比
 
 | 指标 | 本次 | 基线 | 一致性 |
 |---|---|---|---|
-| 笔记数 | 163 | 163 | ✓ 一致 |
-| 总字符 | 290335 | 290335 | ✓ 一致 |
-| 正文字符 | 258454 | 258454 | ✓ 一致 |
-| H2 节数 | 961 | 961 | ✓ 一致 |
+| 笔记数 | 166 | 163 | ✗ 不一致 |
+| 总字符 | 294846 | 290335 | ✗ 不一致 |
+| 正文字符 | 262244 | 258454 | ✗ 不一致 |
+| H2 节数 | 974 | 961 | ✗ 不一致 |
 | H3 节数 | 264 | 264 | ✓ 一致 |
-| 双链出链 | 435 | 435 | ✓ 一致 |
+| 双链出链 | 447 | 435 | ✗ 不一致 |
 | 死链 | 29 | 29 | ✓ 一致 |
-| 预估 chunk 数（H2+1/篇） | 1124 | 1124 | ✓ 一致 |
+| 预估 chunk 数（H2+1/篇） | 1140 | 1124 | ✗ 不一致 |
 
 > 出现 ✗ 时先确认 Vault 是否有新增/修改；无变化则回查审计口径（scripts/audit_baseline.py）。
 
@@ -21,13 +21,13 @@
 
 | type | 数量 |
 |---|---|
-| knowledge | 56 |
-| log | 38 |
-| NO_FRONTMATTER | 19 |
+| knowledge | 58 |
+| log | 39 |
+| NO_FRONTMATTER | 18 |
 | decision | 16 |
 | project | 14 |
 | source | 14 |
-| index | 3 |
+| index | 4 |
 | prompt | 2 |
 | system-rule | 1 |
 
@@ -35,8 +35,8 @@
 
 | status | 数量 |
 |---|---|
-| active | 131 |
-| (none) | 19 |
+| active | 135 |
+| (none) | 18 |
 | completed | 10 |
 | complete | 2 |
 | draft | 1 |
@@ -45,8 +45,8 @@
 
 | 目录 | 数量 |
 |---|---|
-| 20-Knowledge | 57 |
-| 50-Logs | 38 |
+| 20-Knowledge | 59 |
+| 50-Logs | 39 |
 | 10-Projects | 22 |
 | 40-Decisions | 16 |
 | 60-References | 13 |
@@ -60,8 +60,8 @@
 
 ## 5. 图谱与链接健康
 
-- 出链总数 **435**，其中死链 **29**（死链率 6.7%）
-- 孤儿笔记（无入链，排除 90-System/.obsidian）：**45** 篇，Top-25（按体量）：
+- 出链总数 **447**，其中死链 **29**（死链率 6.5%）
+- 孤儿笔记（无入链，排除 90-System/.obsidian）：**46** 篇，Top-25（按体量）：
 
 1. `20-Knowledge/Godot 4.7 GDScript 踩坑清单.md`
 2. `10-Projects/python-learning-lab/lessons/08_oop.md`
@@ -108,7 +108,7 @@
 
 ## 6. 元数据治理
 
-- 无 frontmatter：**18** 篇
+- 无 frontmatter：**17** 篇
 - 有 frontmatter 但缺 type：**1** 篇
 - 0 字节文件：**2** 个：`未命名 1.md`、`未命名.md`
 
@@ -131,17 +131,16 @@
 - `40-Decisions/2026-09-12 dsh 插件更新 pnpm v11 对齐与构建策略.md`
 - `50-Logs/2026-09-12 dsh 插件检查更新.md`
 - `90-System/Indexes/Decision Index.md`
-- `90-System/Indexes/Knowledge Index.md`
 
 ## 7. 分块与索引（本次管道产出）
 
 | 指标 | 值 |
 |---|---|
-| docs 表行数 | 163 |
-| chunks 行数 | 1289 |
-| links 行数 | 435 |
-| FTS5 索引行数 | 1289 |
-| 索引库 | `D:\RAG\data\vaultmind.db`（1884.0 KB） |
+| docs 表行数 | 166 |
+| chunks 行数 | 1306 |
+| links 行数 | 447 |
+| FTS5 索引行数 | 1306 |
+| 索引库 | `D:\RAG\data\vaultmind.db`（1920.0 KB） |
 
 > 分块口径：每篇 1 个「概述」chunk + 每个 H2 小节 1 个 chunk；超 600 字的小节按 H3/段落二次切分；每个 chunk 注入元数据前缀。
 
@@ -149,9 +148,9 @@
 
 1. **清理 0 字节文件**：`未命名 1.md`、`未命名.md` 没有任何内容，建议在 Obsidian 中直接删除。
 2. **统一状态取值**：`completed`（10）与 `complete`（2）混用，建议全局统一为 `completed`。
-3. **补齐 frontmatter**：18 篇笔记缺 frontmatter，建议补 type/status/tags 三字段。
-4. **修复失效双链**：29 条出链指向不存在的笔记（死链率 6.7%），建议逐一修复或删除。
-5. **孤儿笔记**：45 篇无任何入链，建议在索引页（90-System/Indexes）补入口或并入相关主题。
+3. **补齐 frontmatter**：17 篇笔记缺 frontmatter，建议补 type/status/tags 三字段。
+4. **修复失效双链**：29 条出链指向不存在的笔记（死链率 6.5%），建议逐一修复或删除。
+5. **孤儿笔记**：46 篇无任何入链，建议在索引页（90-System/Indexes）补入口或并入相关主题。
 
 > 治理前后对比（覆盖率、死链率、孤儿数）将作为 AI 数据分析方向的可视化素材。
 

@@ -3,6 +3,13 @@
 > 约定：每个节点验收通过后追加一条；格式：`日期 · 节点 | 做了什么 | 验证结果 | 遗留与下一步`。
 > AI 会话开工必读本文件 + `PLAN.md`；节点收尾必须回来追加。
 
+## 2026-09-17 · 知识沉淀入库 Vault + 检索索引/向量更新（语料 163→166 篇）
+
+- **做了什么**：①核对草稿区 7 张卡片，其中 5 张此前已入库，把**尚未入库的 2 张**（《索引重建陷阱：自增 rowid 让向量索引张冠李戴》《文档锚点漂移：别手抄数字，让文档去读报告》）按 Vault 规范入库 `20-Knowledge`——草稿 frontmatter 转 Vault 格式（type/status/created/updated/tags/source/confidence），占位 `{{draft-note}}` 换成真实双链，补「关联概念」段；②按 Vault 规则更新 `90-System/Indexes/Knowledge Index`（RAG 分区 +2 行）并写 `50-Logs/2026-09-17 VaultMind 知识沉淀入库与检索索引更新.md`；③重建索引 + 全量重建向量，使新卡片可检索；④语料增长后按「单一事实来源」回写文档锚点（166 篇 / 29.5 万字 / 974 H2 / 447 双链 / 1,306 chunks）。
+- **验证结果**：`python -m vaultmind.ingest` → **166 篇 / 294,846 字符 / 974 H2 / 447 出链（死链 29）/ 1,306 chunks**（1.7s）；`--build-vectors` → **1,306/1,306** 向量（35.5s，1024 维）；**新卡片双路命中验证通过**（「自增 rowid 位置性 ID 向量错位」hybrid Top-1 + bm25 Top-1；「文档锚点漂移 手抄数字 现场解析」hybrid Top-1；索引页作为桥接节点被召回）；**60 条 gold 在全量重跑的 166 篇语料上三项指标精确保持**（R@5 0.8167 / MRR 0.7096 / nDCG@10 0.7403，延迟 0.253→0.323s）；消融重跑**基线复现闸门通过**（E1/E2/E3 结论数值不变，E6 延迟 304→293ms）；审计基线重定 163→166（`scripts/rebase_audit_baseline.py`）；**pytest 60/60**；PDF 重生 6 页。
+- **交付物**：Vault 新增 2 知识卡片 + 1 日志 + 索引更新；项目侧 `reports/baseline.md`、`reports/ablation.md`、`reports/baseline_audit.json`、`reports/audit_report.md`、README/Q&A/简历 bullet/PDF 同步。
+- **遗留与下一步**：用户侧：录屏 3 分钟（7 幕）、简历贴数字。AI 侧 W4 追加实验（M6b 分块粒度、本地 vs 云端、联网 B/C S1 Bing 探测）。**注意**：每次 Vault 增长都要走一遍「重建索引+向量 → 复验 gold → 重定审计基线 → 回写文档锚点」，本次已是第 2 次；若再加笔记，建议把这条做成脚本化的一键流程。
+
 ## 2026-09-17 · 启动器重构：bat 只做最简转发，逻辑全进 launcher.py
 
 - **背景**：用户反馈「双击 run_api.bat 无反应、页面打不开」。查知识库得正解（《Windows Python 项目启动器模式》《CET-4 启动器闪退修复》）：**不要把复杂逻辑塞进批处理**。

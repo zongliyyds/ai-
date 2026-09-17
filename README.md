@@ -1,6 +1,6 @@
 # VaultMind · 个人知识库 RAG 问答与评测系统
 
-> 把个人 Obsidian 知识库（163 篇笔记 / 29.0 万字 / 961 个 H2 / 435 条双链）做成**可问答、可评测、可复现**的 RAG 系统。
+> 把个人 Obsidian 知识库（166 篇笔记 / 29.5 万字 / 974 个 H2 / 447 条双链）做成**可问答、可评测、可复现**的 RAG 系统。
 > 面向「AI 应用开发 + AI 数据分析」双方向求职作品。零 LangChain / 零 torch / 零向量数据库。
 
 ## 指标总览（60 条 gold 评测集 · hybrid 检索 · 可复现）
@@ -12,7 +12,7 @@
 | Recall@10 | 0.8333 | — | — | `reports/baseline.md` |
 | MRR | **0.7096** | ≥0.65 | ✅ | `reports/baseline.md` |
 | nDCG@10 | **0.7403** | ≥0.70 | ✅ | `reports/baseline.md` |
-| 平均延迟 | 0.253 s/查询 | — | — | `reports/baseline.md` |
+| 平均延迟 | 0.323 s/查询 | — | — | `reports/baseline.md` |
 | 引用可追溯 | 非法引用编号 = 0 | 100% | ✅ | `reports/m4_smoke.md` |
 | 超纲拒答 | 2/2 探针拒答 | 拒答 | ✅ | `reports/m4_smoke.md` |
 | 消融实验 | 6 组 × 60 gold | 基线复现闸门 | ✅ | `reports/ablation.md` |
@@ -26,7 +26,7 @@
 D:\AI-Knowledge-Vault (Obsidian 源库，只读)
         │  scan → audit → chunk(结构感知, 600字/H2, 元数据前缀)
         ▼
-D:\RAG\data\vaultmind.db        ← docs(163)/chunks(1289)/links(435) + FTS5(jieba) + qa_logs
+D:\RAG\data\vaultmind.db        ← docs(166)/chunks(1306)/links(447) + FTS5(jieba) + qa_logs
         │  bge-m3 1024维向量化 → embeddings.npy（L2 归一化，cosine=点积）
         ▼
 检索层  BM25(FTS5) ─┐
