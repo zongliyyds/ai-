@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
-"""M7 文档一致性探针：README/简历数字必须与 reports 精确一致（防漂移）。"""
-import re
-from pathlib import Path
+"""M7 文档一致性探针：README/简历数字必须与 reports 精确一致（防漂移）。
 
-ROOT = Path(__file__).resolve().parent.parent
+锚点不再手抄常量，而是**从 reports 现场解析**——报告更新时探针自动跟随，
+不会出现「报告已重生、断言还钉旧数字」的漂移（2026-09-17 重锚定修复）。
+"""
+from _doc_anchors import BASE_DIR as ROOT, parse_ablation_deltas, parse_report_metrics
 
-BASELINE = {"recall@5": 0.8167, "mrr": 0.7010, "ndcg@10": 0.7339}
+BASE = parse_report_metrics()
+DELTAS = parse_ablation_deltas()
 
 
 def test_readme_metrics_match_baseline():
+    assert {"recall@5", "mrr", "ndcg@10"} <= set(BASE), "baseline.md 指标总表解析失败"
     text = (ROOT / "README.md").read_text(encoding="utf-8")
-    for key, value in BASELINE.items():
-        assert ("%.4f" % value) in text, "README 缺少指标 %s" % key
+    for key in ["recall@5", "mrr", "ndcg@10"]:
+        assert ("%.4f" % BASE[key]) in text, "README 缺少指标 %s（应为 %.4f）" % (key, BASE[key])
     # 断言出处标注齐全
     for anchor in ["reports/baseline.md", "reports/ablation.md", "reports/m4_smoke.md"]:
         assert anchor in text
@@ -36,7 +39,8 @@ def test_qa_playbook_covers_hard_questions():
     text = (ROOT / "docs" / "Q&A预案.md").read_text(encoding="utf-8")
     for kw in ["LangChain", "评测集", "顶部稀释", "负结果", "分块", "拒答"]:
         assert kw in text
-    assert "0.8167" in text and "0.7010" in text and "0.7339" in text
+    for key in ["recall@5", "mrr", "ndcg@10"]:
+        assert ("%.4f" % BASE[key]) in text, "Q&A 预案数字过期：%s 应为 %.4f" % (key, BASE[key])
 
 
 def test_gold_sixty_approved():
@@ -48,5 +52,11 @@ def test_gold_sixty_approved():
 
 
 def test_ablation_conclusions_have_numbers():
+    """消融结论段必须含实测增益（从报告解析，不钉死某一轮的具体数值）。"""
+    assert DELTAS["e1_delta"] is not None, "ablation.md 未解析到 E1 三路增益"
+    assert DELTAS["e5_delta"] is not None, "ablation.md 未解析到 E5 1-hop 增益"
+    assert DELTAS["e1_delta"] > 0, "融合应有正增益，实测 %s" % DELTAS["e1_delta"]
     text = (ROOT / "reports" / "ablation.md").read_text(encoding="utf-8")
-    assert "+0.0500" in text and "-0.0667" in text and "+0.0000" in text
+    for shown in ["%+.4f" % DELTAS["e1_delta"], "%+.4f" % DELTAS["e5_delta"]]:
+        assert shown in text, "结论段缺少增益数字 %s" % shown
+    assert "负结果" in text and "-0.0667" in text

@@ -7,6 +7,7 @@ r"""M6 消融总控：六组实验 × 同一份 60 条 gold → reports/ablation
 """
 import json
 import math
+import sqlite3
 import sys
 import time
 from pathlib import Path
@@ -19,7 +20,7 @@ from vaultmind.eval.runner import load_gold                  # noqa: E402
 from vaultmind.llm.rewrite import llm_rewrite, rule_rewrite  # noqa: E402
 from vaultmind.retrieval import bm25, search, vector         # noqa: E402
 
-BASELINE = {"recall@5": 0.8167, "mrr": 0.7010, "ndcg@10": 0.7339}
+BASELINE = {"recall@5": 0.8167, "mrr": 0.7096, "ndcg@10": 0.7403}
 TOP_K = 10
 CACHE = ROOT / "eval" / "rewrites_cache.json"
 
@@ -69,6 +70,18 @@ def table_header(A):
     A("|---|---|---|---|---|---|---|---|")
 
 
+def db_counts():
+    """当前索引库规模（docs/chunks/links），供报告文字动态引用，避免手抄漂移。"""
+    from vaultmind.config import DB_PATH
+    con = sqlite3.connect(str(DB_PATH))
+    try:
+        return tuple(con.execute("SELECT (SELECT COUNT(*) FROM docs),"
+                                 "(SELECT COUNT(*) FROM chunks),"
+                                 "(SELECT COUNT(*) FROM links)").fetchone())
+    finally:
+        con.close()
+
+
 def load_rewrites(gold):
     """LLM 改写（仅 hard 条目），带缓存；失败用规则版兜底。"""
     cache = {}
@@ -94,6 +107,9 @@ def main() -> int:
     if len(gold) != 60:
         print("gold 非 60 条（%d），中止" % len(gold))
         return 1
+    global N_DOCS, N_CHUNKS, N_LINKS
+    N_DOCS, N_CHUNKS, N_LINKS = db_counts()
+    print("索引规模：docs=%d chunks=%d links=%d" % (N_DOCS, N_CHUNKS, N_LINKS))
 
     L = []
     A = L.append
@@ -101,7 +117,8 @@ def main() -> int:
     A("")
     A("> 生成时间：%s ｜ gold 60 条 ｜ hybrid 基线 k=60、top_k=10 ｜ 复现："
       "`D:\\python\\python.exe scripts\\m6_ablation.py`" % time.strftime("%Y-%m-%d %H:%M"))
-    A("> 基线锚点（reports/baseline.md）：Recall@5=0.8167 / MRR=0.7010 / nDCG@10=0.7339。")
+    A("> 基线锚点（reports/baseline.md）：Recall@5=%.4f / MRR=%.4f / nDCG@10=%.4f。"
+      % (BASELINE["recall@5"], BASELINE["mrr"], BASELINE["ndcg@10"]))
     A("")
 
     results = {}  # label -> (agg, details)
@@ -266,8 +283,8 @@ def main() -> int:
     A("")
     A("### E6 规模-延迟曲线：零向量库决策被数据验证")
     A("")
-    A("- vector 延迟 25%%→100%% 语料时 %.1f→%.1f ms 基本持平 → 查询侧 bge-m3 嵌入（~280ms）是主导项，1,237×1024 暴力点积本身 <1ms。"
-      % (e6_rows[0][2], e6_rows[-1][2]))
+    A("- vector 延迟 25%%→100%% 语料时 %.1f→%.1f ms 基本持平 → 查询侧 bge-m3 嵌入（~280ms）是主导项，%d×1024 暴力点积本身 <1ms。"
+      % (e6_rows[0][2], e6_rows[-1][2], N_CHUNKS))
     A("- **结论：当前规模「零向量库」成立**（无需 HNSW/FAISS）；优化方向是 embedding 调用（缓存查询向量/服务化）。bm25 仅 ~%.0f ms，是天然低延迟兜底。"
       % e6_rows[-1][1])
     A("")
@@ -276,7 +293,8 @@ def main() -> int:
     A("1. 「对 BM25/向量/RRF 做三路消融：融合 R@5 提升 %+.4f（vs 最强单路），并量化了 R@1 顶部稀释现象，据此设计条件化标题重排。」"
       % (h_agg["recall@5"] - max(b["recall@5"], v["recall@5"])))
     A("2. 「六组消融中查询改写与图谱 1-hop 均为负/中性结果（如实记录），据此砍掉两个伪需求，避免上线无效组件。」")
-    A("3. 「规模-延迟曲线验证 1.2k chunks 暴力点积 <1ms，零向量库架构成立；实测延迟主导项为 embedding 调用，给出缓存优化方向。」")
+    A("3. 「规模-延迟曲线验证 %.1fk chunks 暴力点积 <1ms，零向量库架构成立；实测延迟主导项为 embedding 调用，给出缓存优化方向。」"
+      % (N_CHUNKS / 1000.0))
     A("")
 
     out = ROOT / "reports" / "ablation.md"

@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """M5 API 离线探针：TestClient 全端点（检索/生成打桩，不依赖 Ollama）。
 
-口径锚点：/metrics 与 reports/baseline.md 精确一致（Recall@5=0.8167 / MRR=0.7010 /
-nDCG@10=0.7339）；/badcases 条数=11；/stats 与数据库直查一致。
+口径锚点：/metrics 与 reports/baseline.md 现场解析值精确一致（锚点不手抄，随报告更新）；
+/badcases 条数=11；/stats 与数据库直查一致。
 """
 import sqlite3
 
 from fastapi.testclient import TestClient
 
+from _doc_anchors import parse_report_metrics
 from vaultmind.api import main as api_main
 from vaultmind.api import stats as api_stats
 from vaultmind.config import DB_PATH
@@ -125,11 +126,14 @@ def test_stats_matches_db():
 
 
 def test_metrics_match_baseline():
+    """/metrics 必须与 reports/baseline.md 现场解析值一致（锚点动态取，防漂移）。"""
     d = client.get("/metrics").json()
     v = d["values"]
-    assert abs(v["recall@5"] - 0.8167) < 1e-9
-    assert abs(v["mrr"] - 0.7010) < 1e-9
-    assert abs(v["ndcg@10"] - 0.7339) < 1e-9
+    expect = parse_report_metrics()
+    assert {"recall@5", "mrr", "ndcg@10"} <= set(expect), "baseline.md 指标总表解析失败"
+    for key in ["recall@5", "mrr", "ndcg@10"]:
+        assert abs(v[key] - expect[key]) < 1e-9, \
+            "%s 与 baseline.md 不一致：API=%s 报告=%s" % (key, v[key], expect[key])
     assert d["num_queries"] == 60
     assert d["recall@5"]["pass"] and d["mrr"]["pass"] and d["ndcg@10"]["pass"]
 

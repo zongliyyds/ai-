@@ -3,6 +3,22 @@
 > 约定：每个节点验收通过后追加一条；格式：`日期 · 节点 | 做了什么 | 验证结果 | 遗留与下一步`。
 > AI 会话开工必读本文件 + `PLAN.md`；节点收尾必须回来追加。
 
+## 2026-09-17 · GitHub 发布 + 全套文档重锚定（新基线回写）
+
+- **做了什么**：①**接入 GitHub**——`D:\RAG` 推送至私有仓库 `https://github.com/zongliyyds/ai-`（origin/main，97 文件；远端建库时的占位 README 用 `merge --allow-unrelated-histories -X ours` 合并，保留本项目 README），工作区那批索引安全修复先提交为 `fix(索引安全)` 再推送；②**新基线回写**——修复后重建向量得到的更优指标（R@1 0.6167→**0.6333**、MRR 0.7010→**0.7096**、nDCG@10 0.7339→**0.7403**、延迟 0.866s→**0.253s**，R@5 0.8167 与坏例 11 条不变）同步进 README/PLAN/Q&A 预案/简历 bullet/工单注记；③**消灭漂移源**——测试断言、PDF 生成脚本、消融总控里的锚点常量改为**从 reports/ 与索引库现场解析**（`tests/_doc_anchors.py` 新增），报告重生后文档自动跟随；④**重跑六组消融**并重生《面试答辩手册 PDF》。
+- **验证结果**：`reports/baseline.md` 由 `python -m vaultmind.eval` 现场重测（60 条，2026-09-17 09:48）；`scripts/m6_ablation.py` 重跑 **基线复现闸门通过**（hybrid 行与官方基线 0.8167/0.7096/0.7403 精确一致，六组表格全部重算）；**pytest 60/60**；PDF 程序化验收入脚本（6 页，文本层含 0.8167/0.7096/0.7403/0.6333/0.253/163/1,289，旧数字零残留）；远端 HEAD 与本地一致、97/97 文件。
+- **过程纠错（如实记录）**：①一度误判 CHANGELOG 缺 09-17 条目（实为旧快照，已在 HEAD 中，本条目为**新增**的发布/重锚定记录）；②读消融表时把 **E4 标题重排行的 easy 1.0000/hard 0.3750 误当成基线 hybrid 的分层值**并据此改了 Q&A/简历，经独立重算（easy 0.9722 / hard 0.5833）后**已全部改回**；同因使 PDF 解析器改为只在 E1 段取 hybrid 行（总览表同名行会覆盖），并修掉 E6 表 4 列被列数检查跳过的 bug。
+- **交付物**：`docs/面试答辩手册.pdf`（重生）、`reports/baseline.md` + `reports/ablation.md`（重跑）、`tests/_doc_anchors.py`、`tests/test_repo_docs.py` + `tests/test_api.py`（动态锚点）、`scripts/make_interview_pdf.py` + `scripts/m6_ablation.py`（现场取数）、README/PLAN/Q&A/简历/四张工单注记。
+- **遗留与下一步**：**用户侧动作**（`docs/求职收尾清单.md`）：3 分钟录屏（7 幕）、简历贴 bullet（新数字为 MRR 0.710 / nDCG@10 0.740）；AI 侧 W4 追加实验（M6b 分块粒度、本地 vs 云端、联网 B/C 的 S1 Bing 探测）与「chunk 改内容哈希 ID」长期方案候选。仓库保持 **private**（用户 2026-09-17 明确不公开）。
+
+## 2026-09-17 · 事故修复：索引重建致向量错位（检索静默退化）
+
+- **现象**：用户反馈「页面异常」。排查发现 Vault 已新增 9 篇笔记（5 张知识卡片入库 + 项目记录/决策/索引页，用户 2026-09-16 夜间手动入库），但索引库未重建，看板仍显示 154 篇旧数字、新笔记搜不到。
+- **根因链**：①索引过期只是表象；②重建后更糟——`chunk.id` 是**自增 rowid（位置性 ID）**，Vault 插入新文件使行号整体错位，旧 `embeddings.npy`/`chunk_ids.json` 的「行号→内容」映射全部张冠李戴，hybrid 检索**静默退化**（实测 Recall@5 0.8167→0.5167、MRR 0.7010→0.2925、坏例 11→29、平均延迟 0.866s→0.264s 暴露向量路已失效）。
+- **修复（五件套）**：①`build_db` 重建真实索引库时删除旧向量产物并打印醒目提示（防静默退化）；②`load_index` 一致性闸门——id 映射必须与库内 chunk 行号逐位一致，错位即抛 `VectorIndexMissing`（宁可报错不给脏结果）；③`test_smoke` 改用临时库跑全管道（pytest 不再重建真实索引库，也不再误删向量）；④`run_api.bat` 失败提示补全两步重建命令；⑤重定审计基线 154→163（用户合法新增，`scripts/rebase_audit_baseline.py` 新工具），pytest 基线探针/pre-commit 恢复可过。
+- **验证结果**：ingest→`--build-vectors` 两步走通（163 篇 / 1289 chunks / 29.5s）；60 条 gold 复测 **Recall@5=0.8167、Recall@10=0.8333 精确复现、坏例 11 条不变**；仅 2 题首中排名变化且均为改善（cand-047: 2→1、cand-107: 9→8），MRR 0.7010→**0.7096**、nDCG@10 0.7339→**0.7403**、R@1 0.6167→**0.6333**——三项目标仍大幅达标；pytest **53/53**（7 条 tmp_path 用例受 DSH 沙箱 scandir 限制未能跑，其中 4 条新增守卫用例已手动复验 **5/5 PASS**，用户环境应为 60/60）；/ask 已能检索到新入库笔记（10.1s，引用校验有效）。
+- **遗留与下一步（待用户决策）**：①MRR/nDCG 微升后是否重新锚定全套文档（README/简历/Q&A 预案/面试 PDF/测试锚点——数字只升不降）；②库规模数字 154→163 是否同步 README/简历/立项书；③git 需执行 `git config --global --add safe.directory D:/RAG`（本会话沙箱无权写用户 .gitconfig，属主错位报 dubious ownership）；④长期方案候选（W4 追加实验）：chunk 改内容哈希 ID，重索引不再错位、可增量向量化。
+
 ## 2026-09-16 · M7 工程化 / 求职转化（W4 主线，AI 侧全部交付）
 
 - **做了什么**：README 重写（指标表/架构图/换机复现/红线）+ `docs/简历bullet.md`（AI 应用开发 + AI 数据分析两套，数字全部标 reports 出处）+ `docs/Q&A预案.md`（11 问 + 数字速查表）+ `scripts/env_check.py`（13 项环境体检）+ `scripts/package_repo.py`（白名单打包 + 红线探针：文件名/手机号/摘录文件/gold 字段四道扫描）+ `scripts/make_interview_pdf.py` → **《面试答辩手册 PDF》6 页（终期交付物）** + `docs/求职收尾清单.md`（GitHub 发布/录屏 7 幕/面试自检）；文档一致性探针 `tests/test_repo_docs.py`（README/简历/Q&A 数字与 reports 精确比对）。

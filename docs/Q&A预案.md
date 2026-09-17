@@ -4,11 +4,11 @@
 
 ## 0. 一句话自我介绍项目
 
-「我把自己的 Obsidian 知识库（154 篇笔记、27.7 万字、409 条双链）做成了一套可问答、可评测、可复现的 RAG 系统：自建 60 条 gold 评测集，hybrid 检索 Recall@5=0.817、MRR=0.701、nDCG@10=0.734 三项达标；带引用生成 100% 可追溯、超纲拒答；做了六组消融实验，砍掉了两个无效组件。全程零 LangChain、零 torch、零向量数据库。」
+「我把自己的 Obsidian 知识库（163 篇笔记、29.0 万字、435 条双链）做成了一套可问答、可评测、可复现的 RAG 系统：自建 60 条 gold 评测集，hybrid 检索 Recall@5=0.817、MRR=0.710、nDCG@10=0.740 三项达标；带引用生成 100% 可追溯、超纲拒答；做了六组消融实验，砍掉了两个无效组件。全程零 LangChain、零 torch、零向量数据库。」
 
 ## 1. 为什么不用 LangChain / Chroma / FAISS / torch？
 
-- **数据规模决定架构**：1,237 个 chunk、1024 维向量，numpy 暴力点积实测 <1ms（消融 E6），上向量库是过度设计。
+- **数据规模决定架构**：1,289 个 chunk、1024 维向量，numpy 暴力点积实测 <1ms（消融 E6），上向量库是过度设计。
 - **可控性**：自写分块/融合/评测每个环节都能解释和改动；LangChain 黑盒多、版本漂移快。
 - **简历价值**：自己写的 FTS5+BM25、RRF 融合、评测指标公式（手写不引 ragas），面试才能讲清原理。
 - 对应文件：`FEASIBILITY.md`、`reports/ablation.md` E6。
@@ -56,7 +56,7 @@
 
 ## 9. 评测指标公式自己写的？怎么验证没写错？
 
-- Recall@k / MRR / nDCG@10 手写实现（不引 ragas），并用**已知排序构造精确值探针**断言（如 RRF k=60 → 1/61）——公式错一票红灯。pytest 50 条含全套探针。
+- Recall@k / MRR / nDCG@10 手写实现（不引 ragas），并用**已知排序构造精确值探针**断言（如 RRF k=60 → 1/61）——公式错一票红灯。pytest 60 条含全套探针。
 - 对应文件：`vaultmind/eval/metrics.py`、`tests/test_eval.py`。
 
 ## 10. 这个项目最难的三个坑？
@@ -75,13 +75,13 @@
 
 | 数字 | 含义 | 出处 |
 |---|---|---|
-| 154 / 27.7 万字 / 922 H2 / 409 双链 / 29 死链 / 25 孤儿 | 知识库体检基线 | `reports/audit_report.md` |
-| 1,237 chunks / 全管道 1.2s | 索引规模与速度 | M1 CHANGELOG |
-| **0.8167 / 0.7010 / 0.7339**（R@5 / MRR / nDCG@10） | 60 条 gold 官方基线，三项达标（0.80/0.65/0.70） | `reports/baseline.md` |
-| 11 题未进 Top-5（easy 97% / hard 58%） | 坏例账本 | `reports/baseline.md` 逐题明细 |
+| 163 / 29.0 万字 / 961 H2 / 435 双链 / 29 死链 / 25 孤儿 | 知识库体检基线 | `reports/audit_report.md` |
+| 1,289 chunks / 全管道 29.5s（163 篇全量重建） | 索引规模与速度 | CHANGELOG 2026-09-17 |
+| **0.8167 / 0.7096 / 0.7403**（R@5 / MRR / nDCG@10） | 60 条 gold 官方基线，三项达标（0.80/0.65/0.70） | `reports/baseline.md` |
+| 11 题未进 Top-5（easy 档 **0.9722** / hard 档 **0.5833**） | 坏例账本 | `reports/ablation.md` E1 hybrid 行 |
 | 非法引用=0、拒答 2/2、生成 8~15s | 生成链路冒烟 | `reports/m4_smoke.md` |
-| 融合 R@5 +0.05；R@1 0.6167 < 纯向量 0.6667（**顶部稀释**） | 三路单拆 | `reports/ablation.md` E1 |
-| 查询改写 -0.017/-0.067、1-hop +0.000、标题重排 easy 1.0 / hard 0.375 | 消融负/混合结果 | `reports/ablation.md` |
-| 25%→100% 语料 290→286ms；点积 <1ms；bm25 ~3ms | 规模曲线 → 零向量库成立 | `reports/ablation.md` E6 |
-| pytest 50 条 + pre-commit 探针钩子 | 三层防线 | `tests/` |
+| 融合 R@5 **+0.0500**；R@1 0.6333 < 纯向量 0.6667（**顶部稀释**） | 三路单拆 | `reports/ablation.md` E1 |
+| 查询改写 -0.0167/-0.0667、1-hop +0.000、标题重排 easy 1.0000 / hard 0.3750（E4） | 消融负/混合结果 | `reports/ablation.md` |
+| 25%→100% 语料 228→246ms；点积 <1ms；bm25 ~2ms | 规模曲线 → 零向量库成立 | `reports/ablation.md` E6 |
+| pytest 60 条 + pre-commit 探针钩子 | 三层防线 | `tests/` |
 
