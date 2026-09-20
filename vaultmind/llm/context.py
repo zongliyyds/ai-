@@ -40,7 +40,7 @@ def build_context(hits, max_chars: int = MAX_CTX_CHARS,
         num = len(kept) + 1
         head = "[S%d] 文档：%s（%s）｜ 章节：%s" % (
             num, h.title or h.rel, h.rel, h.section or "-")
-        body = (h.text or "").strip()[:max_chars]
+        body = h.body[:max_chars]
         block = head + "\n" + body if body else head
         if kept and budget - len(block) <= 0:
             break
@@ -48,7 +48,6 @@ def build_context(hits, max_chars: int = MAX_CTX_CHARS,
         blocks.append(block)
         budget -= len(block) + 2
 
-    cites = [Citation(num, h.rel, h.title or "", h.section or "",
-                      (h.text or "").strip())
+    cites = [Citation(num, h.rel, h.title or "", h.section or "", h.body)
              for num, h in kept]
     return "\n\n".join(blocks), cites

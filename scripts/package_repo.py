@@ -118,12 +118,16 @@ def main() -> int:
         print("[FAIL] 红线探针命中，拒绝打包：")
         for rel, why in bad:
             print("  - %s：%s" % (rel, why))
+        import shutil
+        shutil.rmtree(tmp, ignore_errors=True)   # FAIL 也要清理临时目录，不留 _pkg_tmp
         return 1
 
     with zipfile.ZipFile(OUT, "w", zipfile.ZIP_DEFLATED) as z:
         for p in sorted(tmp.rglob("*")):
             if p.is_file():
-                z.write(p, "vaultmind/" + str(p.relative_to(tmp)))
+                # as_posix()：arcname 统一用正斜杠，避免 Windows 反斜杠混入 zip，
+                # 否则 Unix/macOS 解压会得到带反斜杠的"单文件"而非目录层级。
+                z.write(p, "vaultmind/" + p.relative_to(tmp).as_posix())
     import shutil
     shutil.rmtree(tmp)
     size = OUT.stat().st_size

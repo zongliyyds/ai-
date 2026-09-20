@@ -25,7 +25,7 @@ def load_gold(path=None, include_draft=False) -> list[dict]:
     return items
 
 
-def run_eval(gold, mode="hybrid", top_k=10) -> tuple[list[dict], dict]:
+def run_eval(gold, mode="bm25", top_k=10) -> tuple[list[dict], dict]:
     runs = []
     details = []
     for it in gold:
@@ -48,7 +48,7 @@ def run_eval(gold, mode="hybrid", top_k=10) -> tuple[list[dict], dict]:
     return details, aggregate(runs)
 
 
-def write_report(details, metrics, mode="hybrid", top_k=10, out=None) -> str:
+def write_report(details, metrics, mode="bm25", top_k=10, out=None) -> str:
     out = Path(out) if out else REPORT_PATH
     approved = len(details)
     L = []
@@ -90,4 +90,22 @@ def write_report(details, metrics, mode="hybrid", top_k=10, out=None) -> str:
     A("")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(L) + "\n", encoding="utf-8")
+    # 机器可读真相源：/metrics 与 /badcases 从此读，不再反解析 Markdown（防格式耦合）
+    json_path = Path(str(out)).with_suffix(".json")
+    # 与 Markdown 表同精度（recall/mrr/ndcg 4 位、延迟 3 位），保证 JSON 与 md 数字逐位一致
+    rounded = {}
+    for k, v in metrics.items():
+        if k == "avg_latency_s":
+            rounded[k] = round(v, 3)
+        elif isinstance(v, float):
+            rounded[k] = round(v, 4)
+        else:
+            rounded[k] = v
+    json_path.write_text(json.dumps({
+        "generated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "mode": mode,
+        "top_k": top_k,
+        "metrics": rounded,
+        "details": details,
+    }, ensure_ascii=False, indent=1), encoding="utf-8")
     return str(out)

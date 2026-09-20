@@ -22,7 +22,7 @@ def _print_hits(query, hits):
         print("%2d. [chunk#%d] score=%s source=%s" % (i, h.chunk_id, h.score, h.source))
         print("    文档：%s" % h.rel)
         print("    章节：%s" % h.section)
-        print("    摘要：%s" % h.text[:100].replace("\n", " "))
+        print("    摘要：%s" % h.body[:100].replace("\n", " "))
     if not hits:
         print("（无命中）")
     print("=" * 78)
@@ -32,7 +32,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="vaultmind.search", description="VaultMind 检索调试工具")
     ap.add_argument("query", nargs="?", default="", help="查询问题")
     ap.add_argument("--top", type=int, default=5)
-    ap.add_argument("--mode", default="hybrid", choices=["bm25", "vector", "hybrid"])
+    ap.add_argument("--mode", default="bm25", choices=["bm25", "vector", "hybrid"])
     ap.add_argument("--build-vectors", action="store_true")
     ap.add_argument("--limit", type=int, default=None)
     args = ap.parse_args(argv)

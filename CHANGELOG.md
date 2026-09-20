@@ -3,6 +3,37 @@
 > 约定：每个节点验收通过后追加一条；格式：`日期 · 节点 | 做了什么 | 验证结果 | 遗留与下一步`。
 > AI 会话开工必读本文件 + `PLAN.md`；节点收尾必须回来追加。
 
+## 2026-09-20 · 端口隔离：VaultMind 从 8000 迁到 8001（避开英语四级知识库冲突）
+
+- **现象**：`D:\English study`（英语四级备考知识库，独立 FastAPI 程序）与 VaultMind 都用 8000 端口；两者同时运行时，后者检测到端口占用会误判「服务已在运行」而打开错误页面，stop 命令还会误杀对方进程。
+- **修复**：把 VaultMind 服务端口从 8000 改为 **8001**——`launcher.py` 的 `PORT`、`scripts/m5_smoke.py` 的 `BASE`、README/AI工作手册/求职收尾清单/工单/项目知识体系/面试PDF 等文档的访问地址全部同步；前端 index.html 用相对路径不受影响。
+- **验证**：8000 被英语四级知识库占用、8001 空闲时，`launcher.py --no-browser --no-sync` 成功在 8001 启动（`/health` 返回 app=vaultmind status=ok ready=true、首页 200）；两端口各自正确响应（8000=`/api/stats` 英语四级、8001=`/health` VaultMind），互不干扰；pytest 84 passed；面试 PDF 重生 7 页。
+- **遗留**：英语四级知识库的 `launcher.py` 有「只查端口不验 /health 就误判已运行」的隐患（会把任何占用 8000 的程序当自己），属该项目问题、不在本工作区，未改动。
+
+## 2026-09-20 · 正式检索模式切换：hybrid → bm25 单路（R@5 0.9167 → 0.9333）
+
+- **做了什么**：①按六组消融数据（E1：BM25 单路 R@5 0.9333 反超 hybrid 0.9167、融合 vs bm25 = -0.0167、顶部稀释相对 bm25）把**正式检索默认模式从 hybrid 改为 bm25**——`search()` 默认 `mode="bm25"`、`run_eval`/`write_report` 默认 bm25、`/search` `/ask` Pydantic 默认、`ask`/`search`/`eval` CLI 默认、`sync_vault` 复验口径全部同步；hybrid/vector 仍可显式 `--mode`/`mode=` 选择（保留语义召回兜底，不删能力）。②**重跑 baseline（bm25 口径）**：R@5 **0.9333** / MRR 0.8681 / nDCG@10 0.8848 / R@1 0.8167 / R@10 0.9333 / 延迟 **0.003s**（bm25 纯 FTS5 无向量化，延迟骤降），三项达标。③**文档叙事同步**：README 架构图/核心特性/指标标题、简历bullet（选 BM25 单路为正式）、Q&A预案自我介绍、面试PDF、search.bat、前端 index.html、项目知识体系文档 全部从「混合检索」改为「BM25 检索（默认）+ 向量/融合可选」。④测试更新：`test_ask_endpoint` 断言默认 mode 改 bm25。
+- **验证结果**：pytest **84 passed**；CLI 冒烟默认 bm25 与显式 hybrid 均返回正确命中；`/ask` 问答链路（bm25 默认）引用 0 非法、无前缀污染；面试 PDF 重生 7 页。
+- **遗留与下一步**：Vault 仍在增长（已 175 篇），每增笔记跑 `sync_vault.py`（复验已走 bm25 口径）；bm25 单路对「同义词/语义改写」类查询可能漏召回，如需兜底可在前端/API 显式切 hybrid（保留能力但默认不走）；知识卡片《防漂移要覆盖全部展示点》待审阅入库。
+
+## 2026-09-20 · V5 采纳：前缀入检索并入正式管道（R@5 0.8167 → 0.9167）
+
+- **做了什么**：①**V5 代码采纳**——`chunker.chunk_doc` 默认 `prefix_mode="inline"`（前缀并入 text 进 FTS/向量，prefix 字段同时保留一份）；新增 `Chunk.body` / `SearchHit.body` 属性在展示层精确剥前缀，`context`/`api`/`search` 的正文与 snippet 改走 `body` → 引用展示不被前缀污染。②**重跑 baseline**——Vault 168→175 篇（用户新增 7 篇，含 50-Logs/2026-09-20 等），R@5 **0.8167 → 0.9167**、MRR 0.8399、nDCG@10 0.8629；175 篇口径下 MRR 0.8297 / nDCG@10 0.8517 / R@1 0.7667 / 延迟 0.235s，三项达标。③**重跑六组消融**（`m6_ablation.py`）——新现象：前缀入 FTS 后 **BM25 单路 R@5 0.9333 反超 hybrid 0.9167**（融合 vs bm25 = -0.0167）；「顶部稀释」从「hybrid R@1 < vector」变为「< bm25」；规则改写 +0.0167（不再为负）、LLM 改写 0.0000、1-hop 0.0000、标题重排 -0.1500。据此修 `m6_ablation` 模板「顶部稀释」硬编码（改动态对比最强单路）+ 简历口径「提升→增益」。④**顺带修复**——anchor_edits 补 README 的 Recall@5/Recall@10 回写（此前漏覆盖，V5 后静默漂移暴露，正是《防漂移要覆盖全部展示点》的实证）；baseline.json 指标取整与 md 逐位一致；`test_badcases_count` 改动态读 baseline.json（坏例 11→5）；`test_ablation_conclusions` 去掉「融合必有正增益」「-0.0667」两个过时断言。⑤**文档同步**——README/PLAN/Q&A预案/简历bullet/面试PDF/工单/m6b 报告 的「V5 候选/待拍板」全部改「已采纳」；坏例、easy/hard、融合增益等数字随 ablation 更新。
+- **验证结果**：pytest **84 passed**（全绿）；sync_vault 全链路 20 处锚点回写无失败；面试 PDF 重生 7 页；m6_ablation 基线复现闸门通过。
+- **遗留与下一步**：**新现象待用户决策**——前缀入检索后 BM25 单路 R@5（0.9333）反超 hybrid（0.9167），是否把正式检索模式从 hybrid 换成 bm25（或保留 hybrid 以保留语义召回兜底）需拍板；Vault 仍在增长（已 175 篇），每增笔记跑 `sync_vault.py`；新增知识卡片《防漂移要覆盖全部展示点：别只验命中，要验覆盖》（待审阅入库）。
+
+## 2026-09-19 · 代码优化：锚点漂移修复 + 指标真相源去耦合 + 可移植性 + 缓存
+
+- **做了什么**：①**P0 锚点漂移**——README/简历bullet/Q&A预案 三处的「pytest 79 条」实际应为 **84**（`pytest --collect-only` 实计 84；79 是 M6b 之前的值），全部更正，并把 pytest 条数纳入 `sync_vault.anchor_edits` 自动回写（README、简历bullet 补覆盖；`make_interview_pdf.py` 改为运行时 `count_tests()` 现场统计，彻底去手抄）。②**P0 指标真相源去耦合**——`eval/runner.write_report` 新增落盘 `reports/baseline.json`（机器可读，含 metrics + 60 条 details）；`api/stats` 的 `/metrics`、`/badcases` 改为**优先读 JSON、旧环境回退解析 Markdown**，去掉「API 正则反解析 md」的格式耦合。③**P1 可移植性**——`config.WORKSPACE` 改为仓库根自定位（`Path(__file__).parents[1]`，不再硬编码 `D:\RAG`）；两份 PDF 脚本的 `OUT` 与 `git -C` 改仓库根派生；`launcher.PY` 改 `sys.executable`（去硬编码 `D:\python`）。④**设计优化**——`vector.load_index` 加进程内缓存（以 db/npy/ids 三文件 mtime 为键，重建即失效，一致性闸门语义不变）；`/search` 的 `mode=bm25` 不再强制 `require_deps()`（Ollama 掉线时纯关键词检索仍可用）。
+- **验证结果**：pytest 全量 **84 collected → 82 passed + 2 skipped**（2 条 Ollama 集成探针因服务未运行 skip，其余全绿）；`test_api` 的 `/metrics`/`/badcases` 走 JSON 真相源通过且与 md 解析值精确一致；`test_sync_vault` 新增锚点模式全部命中；一次性迁移生成 `reports/baseline.json`（60 details / 11 badcases，与基线一致）。
+- **遗留与下一步**：新增 `docs/项目内容与知识体系.md`（非技术背景求职视角的知识地图 + 面试话术）；一次性迁移脚本 `data/_migrate_baseline.py`（gitignored）可留作记录或删除；**V5 前缀入检索（R@5 +0.1000）仍待用户拍板**；开工前工作树已有未提交改动（HEAD=2d71a90），建议本次审阅后统一提交。
+
+## 2026-09-17 · 全项目代码审查修复 + 一键同步/自动同步（H1/M1/M2/M3/H2/M8 + 低危清理）
+
+- **做了什么**：①全项目扫描（核心包逐行 + scripts/tests 并行审查）定位并修复——**H1** `/ask` 生成期依赖故障未捕获（`generator.generate()` 把 httpx 错误包成 RuntimeError + `api_ask` 补 `except httpx.HTTPError` 双保险，生成期 Ollama 掉线/上下文超限 → 结构化 503 而非裸 500）；**M1** chunker「概述」前言不切分（改走 `emit_pieces`，168 篇语料里 1 篇 707 字前言被正确切分）；**M2** sync_vault 变更检测死功能（未变化真正短路跳过，不再每次都全量重建）；**M3** package_repo 打包 arcname 反斜杠（改 `as_posix()`）+ FAIL 分支不清理临时目录；**H2** test_retrieval 非离线（对 Ollama/索引/向量缺失改为 `skip` 而非 FAIL）；**M8** 三处假绿断言（test_ablation 补多目标/自链排除、test_m6b_chunk 用哨兵文件验「不触碰正式向量」、test_sync_vault 先 `assert edits` 非空）。②低危清理：`audit_baseline.py` 硬编码到拼写错误的项目外路径、`rebase_audit_baseline.py` 吞异常仍 exit 0、`env_check.py` 模型名 `split(":")[0]` 弱校验、`report.py` 硬编码 `%600`、requirements 删 `scikit-learn/pandas/python-dotenv` 死依赖并锁 `httpx/pytest`、`.gitignore` 补 `.pytest_cache/` 与 `*.db-wal`/`*.db-shm`。③**新增一键同步 + 自动同步**：`sync_vault.py --light`（轻量：只重建索引+向量，独立指纹 `data/index_state.json`，不污染全量判断）；`sync_vault.bat`（双击一键全量同步）；`launcher.py` 启动时自动检测 Vault 新笔记并 `--light` 同步（`--no-sync` 可关）。
+- **验证结果**：pytest **79→84**（+5 探针：生成期 503×2、前言切分、sync 短路、轻量指纹隔离）；`--light` 真实跑通 **168 篇 / chunks 1321→1323 / 向量 1323/1323（34.5s）**；60 条 gold 复测指标**与基线精确一致**（R@5 0.8167 / MRR 0.7099 / nDCG@10 0.7406，零回归）；全量 `--dry-run` 未变化正确短路。
+- **遗留与下一步**：V5（prefix_mode=inline，R@5 +0.1000）仍待用户拍板；chunk 改内容哈希 ID（长期方案）；联网 B/C 的 S1 Bing 探测。
+
 ## 2026-09-17 · W4 追加实验 M6b：分块粒度消融（查出「前缀未接入检索 + 标题被剥离」的真因）
 
 - **做了什么**：①**基建**——`chunker.chunk_doc/chunk_all` 新增三个可选参数 `granularity`(h2/h3/doc)、`max_chars`、`prefix_mode`(field/none/inline)，**默认值 = 现行行为**；`vector`/`bm25`/`search()` 新增 `db_path`/`npy_path`/`ids_path` 临时路径参数（默认 = 正式路径）；②**实验** `scripts/m6b_chunk_ablation.py`：6 变体 × 60 条 gold（V1 基线 / V2 细粒度 / V3 粗粒度 / V4 无前缀 / V5 前缀入检索 / V6 组合），每变体独立临时索引目录 + 重嵌入 + 基线复现闸门 + 检索文本指纹 + 逐题附录；③探针 `tests/test_m6b_chunk.py` 11 条（默认行为回归、粒度单调性、前缀三态、路径隔离、临时索引不触碰正式向量、脚本锚点防漂移）；④工单 `docs/工单-W4-M6b-分块粒度消融.md`。

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""M5 在线冒烟：对运行中的 http://127.0.0.1:8000 做全端点验收（含真模型一问）。
+r"""M5 在线冒烟：对运行中的 http://127.0.0.1:8001 做全端点验收（含真模型一问）。
 
 前置：先启动服务（run_api.bat 或 uvicorn vaultmind.api.main:app）。
 用法：D:\python\python.exe scripts\m5_smoke.py
@@ -9,7 +9,7 @@ import time
 
 import httpx
 
-BASE = "http://127.0.0.1:8000"
+BASE = "http://127.0.0.1:8001"
 
 
 def main() -> int:

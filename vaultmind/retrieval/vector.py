@@ -107,11 +107,23 @@ def build_embeddings(resume: bool = True, batch: int = BATCH_SIZE, limit: int | 
     return stats
 
 
+_index_cache: dict = {}  # key=(db,npy,ids 路径 + 三者 mtime) → (matrix, ids)
+
+
 def load_index(db_path=None, npy_path=None, ids_path=None) -> tuple[np.ndarray, list[int]]:
     db, npy, ids_file = _paths(db_path, npy_path, ids_path)
     if not (npy.exists() and ids_file.exists()):
         raise VectorIndexMissing(
             "向量索引缺失。请先执行 D:\\python\\python.exe -m vaultmind.search --build-vectors")
+    # 进程内缓存：向量矩阵 ~5MB，每次查询都 np.load + 全表扫 id 是纯浪费；
+    # 以三文件 mtime 作键，任一方变化（重建）即失效重载，一致性闸门语义不变。
+    try:
+        key = (str(db), str(npy), str(ids_file),
+               db.stat().st_mtime_ns, npy.stat().st_mtime_ns, ids_file.stat().st_mtime_ns)
+    except OSError:
+        key = None
+    if key is not None and key in _index_cache:
+        return _index_cache[key]
     m = np.load(npy)
     ids = json.loads(ids_file.read_text(encoding="utf-8"))
     if len(m) != len(ids):
@@ -126,6 +138,8 @@ def load_index(db_path=None, npy_path=None, ids_path=None) -> tuple[np.ndarray, 
         raise VectorIndexMissing(
             "向量索引与当前索引库不一致（chunk 行号错位）。请重建向量索引："
             "D:\\python\\python.exe -m vaultmind.search --build-vectors")
+    if key is not None:
+        _index_cache[key] = (m, ids)
     return m, ids
 
 

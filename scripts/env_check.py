@@ -15,8 +15,8 @@ sys.path.insert(0, str(ROOT))
 
 from vaultmind.config import DATA_DIR, DB_PATH, VAULT_ROOT, WORKSPACE  # noqa: E402
 
-REQUIRED_PACKAGES = ["fastapi", "uvicorn", "jieba", "sklearn", "numpy",
-                     "pandas", "fitz", "pytest", "httpx"]
+REQUIRED_PACKAGES = ["fastapi", "uvicorn", "jieba", "numpy",
+                     "fitz", "pytest", "httpx"]
 REQUIRED_MODELS = ["bge-m3", "qwen2.5:7b-instruct"]
 
 
@@ -71,9 +71,10 @@ def main() -> int:
         r = httpx.get("http://127.0.0.1:11434/api/tags", timeout=5)
         if r.status_code == 200:
             names = {m["name"] for m in r.json().get("models", [])}
-            names |= {n.split(":")[0] for n in list(names)}
-            miss = [m for m in REQUIRED_MODELS if m not in names
-                    and m.split(":")[0] not in names]
+            # 精确匹配或带后缀变体（如 qwen2.5:7b-instruct-q4_0）；绝不退化成
+            # split(":")[0] 只比对主名——否则只装 qwen2.5:7b（无 -instruct）也会 PASS。
+            miss = [m for m in REQUIRED_MODELS
+                    if not any(n == m or n.startswith(m + ":") for n in names)]
             add("PASS" if not miss else "FAIL", "Ollama 模型",
                 "缺失：%s（ollama pull ...）" % miss if miss else "bge-m3 + qwen2.5:7b-instruct 齐")
         else:

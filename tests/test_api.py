@@ -2,10 +2,12 @@
 """M5 API 离线探针：TestClient 全端点（检索/生成打桩，不依赖 Ollama）。
 
 口径锚点：/metrics 与 reports/baseline.md 现场解析值精确一致（锚点不手抄，随报告更新）；
-/badcases 条数=11；/stats 与数据库直查一致。
+/badcases 条数 = baseline.json 现场取值（防硬编码漂移）；/stats 与数据库直查一致。
 """
 import sqlite3
 
+import httpx
+import pytest
 from fastapi.testclient import TestClient
 
 from _doc_anchors import parse_report_metrics
@@ -133,7 +135,7 @@ def test_ask_endpoint(monkeypatch):
     assert d["validation"]["citation_valid"] is True
     assert d["validation"]["cited_ids"] == [1, 2]
     assert d["refusal"] is False
-    assert d["mode"] == "hybrid"
+    assert d["mode"] == "bm25"
     assert d["citations"][0]["link"].startswith("obsidian://")
 
 
@@ -162,6 +164,27 @@ def test_ask_refusal(monkeypatch):
     d = client.post("/ask", json={"query": "比特币价格"}).json()
     assert d["refusal"] is True
     assert d["validation"]["has_citation"] is False
+
+
+@pytest.mark.parametrize("exc", [
+    httpx.ConnectError("connection refused"),   # 直连 httpx 异常（新增兜底）
+    RuntimeError("本地生成失败（Ollama）：模拟中途掉线"),  # generate 包装后的 RuntimeError
+])
+def test_ask_returns_503_when_generation_fails(monkeypatch, exc):
+    """生成期依赖故障（Ollama 中途掉线/超时/上下文超限）→ 503 结构化 detail，而非裸 500。"""
+    monkeypatch.setattr(api_main, "ollama_status", lambda timeout=2.0: (True, ["bge-m3", "qwen2.5:7b-instruct"], ""))
+    monkeypatch.setattr(api_main, "search",
+                        lambda q, top_k=10, mode="hybrid": [make_hit()])
+    monkeypatch.setattr(api_main.api_stats, "insert_qa_log", lambda *a, **k: 42)
+
+    def boom(*a, **k):
+        raise exc
+    monkeypatch.setattr("vaultmind.llm.generator.generate", boom)
+    r = client.post("/ask", json={"query": "测试"})
+    assert r.status_code == 503
+    d = r.json()
+    assert d["detail"]["error"] == "upstream_failed"
+    assert "ollama serve" in d["detail"]["hint"]
 
 
 # ---- /stats /metrics /badcases（口径锚点） ----
@@ -193,7 +216,11 @@ def test_metrics_match_baseline():
 
 def test_badcases_count():
     d = client.get("/badcases").json()
-    assert d["total"] == 11
+    # 动态取真相源：坏例数 = baseline.json 里 hit_in_top5=False 的条数（V5 后 11→5，硬编码必漂移）
+    import json
+    data = json.loads(api_stats.BASELINE_JSON_PATH.read_text(encoding="utf-8"))
+    expected = sum(1 for it in data["details"] if not it["hit_in_top5"])
+    assert d["total"] == expected
     assert all("question" in it and "id" in it for it in d["items"])
 
 

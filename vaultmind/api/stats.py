@@ -4,6 +4,7 @@
 口径约定：/stats 数字全部直查 data/vaultmind.db；/metrics 与 /badcases 解析
 reports/baseline.md（该报告入 git、随版本走）→ 看板与报告永远一致。
 """
+import json
 import re
 import sqlite3
 from datetime import datetime
@@ -12,6 +13,7 @@ from pathlib import Path
 from vaultmind.config import DB_PATH, WORKSPACE
 
 BASELINE_PATH = WORKSPACE / "reports" / "baseline.md"
+BASELINE_JSON_PATH = WORKSPACE / "reports" / "baseline.json"
 TARGETS = {"recall@5": 0.80, "mrr": 0.65, "ndcg@10": 0.70}
 GOLD_SIZE = 60  # gold 规模（与 gold_finalization 一致）
 
@@ -96,16 +98,37 @@ def library_stats(db_path=None) -> dict:
 _METRIC_RE = re.compile(r"\|\s*(Recall@\d+|MRR|nDCG@10)\s*\|\s*([0-9.]+)\s*\|")
 
 
+def _baseline_json() -> dict | None:
+    """读取机器可读真相源 reports/baseline.json（由 eval runner 生成）。"""
+    if not BASELINE_JSON_PATH.exists():
+        return None
+    try:
+        return json.loads(BASELINE_JSON_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
 def baseline_metrics(report_path=None) -> dict:
-    """解析 reports/baseline.md 指标总表 → 指标字典（含目标值与达标判定）。"""
-    report_path = Path(report_path) if report_path else BASELINE_PATH
-    if not report_path.exists():
-        return {"error": "基线报告缺失：%s" % report_path}
-    text = report_path.read_text(encoding="utf-8")
-    metrics = {}
-    for name, value in _METRIC_RE.findall(text):
-        metrics[name.lower()] = float(value)
-    out = {"values": metrics, "num_queries": GOLD_SIZE}
+    """指标字典（含目标值与达标判定）。
+
+    优先读 reports/baseline.json（机器可读真相源，防 Markdown 格式耦合）；
+    尚未生成时回退到解析 reports/baseline.md（旧环境可用，两者数字同源）。
+    """
+    data = _baseline_json()
+    if data is not None and isinstance(data.get("metrics"), dict):
+        m = data["metrics"]
+        metrics = {k: m[k] for k in ("recall@1", "recall@5", "recall@10", "mrr", "ndcg@10")
+                   if k in m and m[k] is not None}
+        out = {"values": metrics, "num_queries": m.get("num_queries", GOLD_SIZE)}
+    else:
+        report_path = Path(report_path) if report_path else BASELINE_PATH
+        if not report_path.exists():
+            return {"error": "基线报告缺失：%s" % report_path}
+        text = report_path.read_text(encoding="utf-8")
+        metrics = {}
+        for name, value in _METRIC_RE.findall(text):
+            metrics[name.lower()] = float(value)
+        out = {"values": metrics, "num_queries": GOLD_SIZE}
     for key, target in TARGETS.items():
         if key in metrics:
             out[key] = {
@@ -117,7 +140,20 @@ def baseline_metrics(report_path=None) -> dict:
 
 
 def badcases(report_path=None) -> list[dict]:
-    """解析 baseline.md 逐题明细中未进 Top-5 的条目（✗ 行）。"""
+    """未进 Top-5 的坏例。
+
+    优先读 reports/baseline.json（真相源）；未生成时回退解析 baseline.md 的 ✗ 行。
+    """
+    data = _baseline_json()
+    if data is not None and isinstance(data.get("details"), list):
+        return [
+            {"id": d.get("id", ""),
+             "question": d.get("question", ""),
+             "first_rank": d.get("first_rank") or None,
+             "top5_hit": bool(d.get("hit_in_top5")),
+             "latency": str(d.get("latency_s", ""))}
+            for d in data["details"] if not d.get("hit_in_top5")
+        ]
     report_path = Path(report_path) if report_path else BASELINE_PATH
     if not report_path.exists():
         return []

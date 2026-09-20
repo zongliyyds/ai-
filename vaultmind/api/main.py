@@ -11,6 +11,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -43,14 +44,14 @@ def _hit_payload(h):
     return {
         "rel": h.rel, "title": h.title, "section": h.section,
         "score": round(h.score, 4), "source": h.source,
-        "snippet": (h.text or "")[:160], "link": obsidian_link(h.rel),
+        "snippet": h.body[:160], "link": obsidian_link(h.rel),
     }
 
 
 class SearchReq(BaseModel):
     query: str
     top_k: int = Field(default=8, ge=1, le=60)
-    mode: str = Field(default="hybrid", pattern="^(bm25|vector|hybrid)$")
+    mode: str = Field(default="bm25", pattern="^(bm25|vector|hybrid)$")
 
 
 class AskReq(SearchReq):
@@ -130,7 +131,9 @@ def deps():
 
 @app.post("/search")
 def api_search(req: SearchReq):
-    require_deps()
+    # BM25-only 检索不依赖 Ollama（bge-m3/向量索引都不参与），Ollama 掉线时仍可用
+    if req.mode != "bm25":
+        require_deps()
     try:
         hits = search(req.query, top_k=req.top_k, mode=req.mode)
     except VectorIndexMissing as e:
@@ -154,8 +157,9 @@ def api_ask(req: AskReq):
         raise HTTPException(status_code=503, detail={
             "error": "vector_index_missing", "message": str(e),
             "hint": r"D:\python\python.exe -m vaultmind.search --build-vectors"})
-    except RuntimeError as e:
+    except (RuntimeError, httpx.HTTPError) as e:
         # 检索/生成期间的依赖故障（Ollama 中途掉线等）→ 结构化 503，而不是纯文本 500
+        # 双保险：generate 已把 httpx 包成 RuntimeError，此处再兜底直连 httpx 的场景。
         raise HTTPException(status_code=503, detail={
             "error": "upstream_failed", "message": str(e), "hint": "ollama serve"})
     chk = validate_cites(answer, len(cites))

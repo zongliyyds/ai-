@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """检索层：FTS5 BM25 + bge-m3 向量 + RRF 融合的统一 search() 接口。
 
-可选参数（M6 消融用；默认值 = 基线行为，M3 官方数字不受影响）：
+默认 mode=bm25（消融实测：前缀入检索后 BM25 单路 R@5 0.9333 最优，
+hybrid 融合反而稀释其顶部信号）。hybrid/vector 仍可显式选择。
+
+可选参数（M6 消融用）：
 - rrf_k：RRF 融合参数 k（默认 60）
 - rerank："title" → 标题加权重排（确定性，无模型）
 - expand_links：双链 1-hop 扩展块数（默认 0=关闭；>0 时扩展块竞争尾部名额）
@@ -12,13 +15,13 @@ from vaultmind.retrieval import bm25, expand, fusion, vector  # noqa: E402
 from vaultmind.retrieval import rerank as rerank_mod           # noqa: E402
 
 
-def search(query: str, top_k: int = 10, mode: str = "hybrid",
+def search(query: str, top_k: int = 10, mode: str = "bm25",
            rrf_k: int = 60, rerank: str | None = None,
            expand_links: int = 0,
            db_path=None, npy_path=None, ids_path=None) -> list[SearchHit]:
     """统一检索入口。
 
-    mode: bm25（FTS5 关键词）/ vector（bge-m3 余弦）/ hybrid（RRF 融合，默认）
+    mode: bm25（FTS5 关键词，默认）/ vector（bge-m3 余弦）/ hybrid（RRF 融合）
     db_path/npy_path/ids_path: 索引库与向量产物路径（M6b 消融的临时索引用；
     默认 None = 正式路径，正式管道行为不变）
     """

@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from vaultmind.config import AUDIT_REPORT, BASELINE_JSON, VAULT_ROOT
+from vaultmind.config import AUDIT_REPORT, BASELINE_JSON, CHUNK_MAX_CHARS, VAULT_ROOT
 
 PARITY_KEYS = ["doc_count", "total_chars", "body_chars", "total_h2", "total_h3",
                "outlink_total", "unresolved_links", "est_chunks_h2"]
@@ -115,7 +115,7 @@ def write_audit_report(metrics, stats=None, out=None):
         ]))
         A("")
         A("> 分块口径：每篇 1 个「概述」chunk + 每个 H2 小节 1 个 chunk；"
-          "超 %d 字的小节按 H3/段落二次切分；每个 chunk 注入元数据前缀。" % 600)
+          "超 %d 字的小节按 H3/段落二次切分；每个 chunk 注入元数据前缀。" % CHUNK_MAX_CHARS)
     else:
         A("（本次未构建索引）")
     A("")

@@ -3,7 +3,11 @@
 import os
 from pathlib import Path
 
-WORKSPACE = Path(os.environ.get("VAULTMIND_WORKSPACE", r"D:\RAG"))
+# 工作区默认 = 仓库根目录（config.py 位于 <仓库>/vaultmind/ 下，向上两级即仓库根），
+# 换机 clone 到任意路径可自定位；仍可用 VAULTMIND_WORKSPACE 覆盖（不再硬编码 D:\RAG）。
+_WORKSPACE_DEFAULT = Path(__file__).resolve().parents[1]
+WORKSPACE = Path(os.environ.get("VAULTMIND_WORKSPACE", str(_WORKSPACE_DEFAULT)))
+# 知识库源默认仍指向本机 Obsidian Vault；换机用 VAULTMIND_VAULT 覆盖（README 已注明）。
 VAULT_ROOT = Path(os.environ.get("VAULTMIND_VAULT", r"D:\AI-Knowledge-Vault\AI-Knowledge-Vault"))
 
 DATA_DIR = WORKSPACE / "data"

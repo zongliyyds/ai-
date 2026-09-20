@@ -14,7 +14,8 @@ import sys
 
 import fitz
 
-OUT = r"D:\RAG\docs\面试答辩手册.pdf"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT = os.path.join(ROOT, "docs", "面试答辩手册.pdf")
 FONT_CANDIDATES = [r"C:\Windows\Fonts\msyh.ttc",
                    r"C:\Windows\Fonts\simhei.ttf",
                    r"C:\Windows\Fonts\simsun.ttc"]
@@ -43,9 +44,23 @@ if _font is None:
 
 
 def git_short():
-    r = subprocess.run(["git", "-C", r"D:\RAG", "rev-parse", "--short", "HEAD"],
+    r = subprocess.run(["git", "-C", ROOT, "rev-parse", "--short", "HEAD"],
                        capture_output=True, text=True)
     return r.stdout.strip() if r.returncode == 0 else "?"
+
+
+def count_tests():
+    """现场统计测试数（pytest --collect-only），失败返回 '?'——不让 PDF 里的测试数漂移。"""
+    import re as _re
+    try:
+        r = subprocess.run(
+            [sys.executable, "-m", "pytest", "tests", "--collect-only", "-q",
+             "--no-header", "-p", "no:cacheprovider"],
+            cwd=ROOT, capture_output=True, text=True, timeout=600)
+        m = _re.search(r"(\d+) tests collected", r.stdout or "")
+        return int(m.group(1)) if m else "?"
+    except Exception:
+        return "?"
 
 
 def _load_anchors():
@@ -358,7 +373,7 @@ def build(total=None) -> fitz.Document:
 
     # ---- 1 指标 ----
     b.new_page()
-    b.heading("1 · 指标总览（60 条 gold 评测集 · hybrid 检索 · 全部可复现）")
+    b.heading("1 · 指标总览（60 条 gold 评测集 · bm25 检索 · 全部可复现）")
     b.table(
         ["指标", "基线值", "目标", "判定", "出处"],
         [["Recall@1", ANCHOR.get("recall@1"), "—", "—", "reports/baseline.md"],
@@ -396,7 +411,7 @@ def build(total=None) -> fitz.Document:
     b.heading("核心设计决策", level=2)
     b.bullets([
         "结构感知分块：一块三用（引用溯源 / 语义上下文 / 评测可追溯）",
-        "混合检索：消融验证融合 R@5 %+.2f 正增益；RRF k 参数不敏感" % FAMILY.get("gain", 0.0),
+        "BM25 检索（默认）：消融验证单路 R@5 0.9333 反超融合；RRF k 参数不敏感",
         "评测集防自欺：候选不用 LLM 生成，分层抽样定稿，seed=42 重跑逐字节一致",
         "引用 100% 可追溯：提示词约束 + 规则校验双层（4 种格式变异探针全覆盖）",
     ])
@@ -457,7 +472,7 @@ def build(total=None) -> fitz.Document:
                size=10)
         b.space(4)
         b.text("铁证：V1（前缀进字段）与 V4（无前缀）的「检索文本指纹」完全相同 → 前缀此前对检索零贡献。"
-               "正式基线未改动（仍为 %s），V5 属候选改进，待拍板。"
+               "V5 已采纳：prefix_mode=inline 为正式默认，基线 R@5 %s。"
                % ANCHOR.get("recall@5", "-"), size=10, color=GRAY)
 
     # ---- 4 高频 Q&A ----
@@ -513,13 +528,13 @@ def build(total=None) -> fitz.Document:
                                   and M6B.get("V5")) else "-"),
           "M6b：细/粗/前缀入检索（候选）", "m6b_chunk_ablation.md"],
          ["点积 <1ms · embedding ~280ms", "规模曲线 → 零向量库", "ablation.md E6"],
-         ["pytest 79 条 · pre-commit 钩子", "三层防线", "tests/"]],
+         ["pytest %s 条 · pre-commit 钩子" % count_tests(), "三层防线", "tests/"]],
         [200, 168, 115.28], size=9)
     b.space(8)
     b.heading("复现与演示", level=2)
     b.bullets([
         "环境体检：D:\\python\\python.exe scripts\\env_check.py（13 项 PASS）",
-        "Web 演示：run_api.bat → http://127.0.0.1:8000（问答页 + 分析看板）",
+        "Web 演示：run_api.bat → http://127.0.0.1:8001（问答页 + 分析看板）",
         "问答 CLI：D:\\python\\python.exe -m vaultmind.ask \"问题\"",
         "全量测试：D:\\python\\python.exe -m pytest tests -q",
     ])

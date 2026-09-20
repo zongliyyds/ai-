@@ -251,13 +251,19 @@ def main() -> int:
                   compute_family(results["hybrid+标题重排"][1], "easy"))
     hd_t = compute_family(results["hybrid+标题重排"][1], "hard")
 
-    A("### E1 三路单拆：融合有正增益，但存在「顶部稀释」")
+    A("### E1 三路单拆：融合增益随最强单路而变")
     A("")
     A("- hybrid R@5=%.4f，比 bm25（%.4f）高 **%+.4f**、比 vector（%.4f）高 **%+.4f**。"
       % (h_agg["recall@5"], b["recall@5"], h_agg["recall@5"] - b["recall@5"],
          v["recall@5"], h_agg["recall@5"] - v["recall@5"]))
-    A("- **顶部稀释事实**：hybrid R@1=%.4f **低于** vector R@1=%.4f——与 M2 记录的 Q1「RRF 稀释单路强信号」案例一致；R@5 层面融合仍最优。"
-      % (h_agg["recall@1"], v["recall@1"]))
+    _s_name = "bm25" if b["recall@1"] >= v["recall@1"] else "vector"
+    _s_r1 = max(b["recall@1"], v["recall@1"])
+    if h_agg["recall@1"] < _s_r1:
+        A("- **顶部稀释事实**：hybrid R@1=%.4f **低于** 最强单路 %s R@1=%.4f——RRF 稀释了最强单路的顶部信号。"
+          % (h_agg["recall@1"], _s_name, _s_r1))
+    else:
+        A("- hybrid R@1=%.4f **不低于** 最强单路 %s R@1=%.4f，顶部无稀释。"
+          % (h_agg["recall@1"], _s_name, _s_r1))
     A("")
     A("### E2 RRF k：参数不敏感")
     A("")
@@ -296,7 +302,7 @@ def main() -> int:
     A("")
     A("### 可写进简历的三条")
     A("")
-    A("1. 「对 BM25/向量/RRF 做三路消融：融合 R@5 提升 %+.4f（vs 最强单路），并量化了 R@1 顶部稀释现象，据此设计条件化标题重排。」"
+    A("1. 「对 BM25/向量/RRF 做三路消融：融合 R@5 增益 %+.4f（vs 最强单路），并量化了 R@1 顶部稀释现象，据此设计条件化标题重排。」"
       % (h_agg["recall@5"] - max(b["recall@5"], v["recall@5"])))
     A("2. 「六组消融中查询改写与图谱 1-hop 均为负/中性结果（如实记录），据此砍掉两个伪需求，避免上线无效组件。」")
     A("3. 「规模-延迟曲线验证 %.1fk chunks 暴力点积 <1ms，零向量库架构成立；实测延迟主导项为 embedding 调用，给出缓存优化方向。」"

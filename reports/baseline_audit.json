@@ -1,13 +1,13 @@
 {
  "root": "D:\\AI-Knowledge-Vault\\AI-Knowledge-Vault",
- "doc_count": 168,
- "total_chars": 299669,
- "body_chars": 266681,
+ "doc_count": 181,
+ "total_chars": 330515,
+ "body_chars": 294855,
  "by_type": {
-  "knowledge": 60,
-  "log": 39,
+  "knowledge": 69,
+  "log": 42,
   "NO_FRONTMATTER": 18,
-  "decision": 16,
+  "decision": 17,
   "project": 14,
   "source": 14,
   "index": 4,
@@ -15,10 +15,10 @@
   "system-rule": 1
  },
  "by_top_folder": {
-  "20-Knowledge": 61,
-  "50-Logs": 39,
+  "20-Knowledge": 70,
+  "50-Logs": 42,
   "10-Projects": 22,
-  "40-Decisions": 16,
+  "40-Decisions": 17,
   "60-References": 13,
   "90-System": 11,
   "AI Knowledge Hub.md": 1,
@@ -29,7 +29,7 @@
   "30-Prompts": 1
  },
  "by_status": {
-  "active": 137,
+  "active": 150,
   "(none)": 18,
   "completed": 10,
   "complete": 2,
@@ -54,11 +54,11 @@
   "50-Logs/2026-09-12 dsh 插件检查更新.md",
   "90-System/Indexes/Decision Index.md"
  ],
- "est_chunks_h2": 1154,
- "total_h2": 986,
- "total_h3": 264,
- "outlink_total": 460,
- "unresolved_links": 29,
+ "est_chunks_h2": 1248,
+ "total_h2": 1067,
+ "total_h3": 274,
+ "outlink_total": 516,
+ "unresolved_links": 27,
  "orphans": [
   "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md",
   "10-Projects/python-learning-lab/lessons/08_oop.md",
@@ -70,6 +70,8 @@
   "10-Projects/python-learning-lab/lessons/04_functions.md",
   "10-Projects/python-learning-lab/lessons/03_loops.md",
   "10-Projects/wang-li-ai-product-resume/README.md",
+  "50-Logs/2026-09-20 dsh 密钥失效与端口残留排查.md",
+  "10-Projects/shuangti-weekly-report/README.md",
   "50-Logs/2026-06-22 职场关键能力论文三轮迭代.md",
   "10-Projects/python-learning-lab/lessons/02_conditions.md",
   "10-Projects/python-learning-lab/lessons/01_variables.md",
@@ -82,29 +84,31 @@
   "50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md",
   "50-Logs/2026-06-06 CET-4 4级基础模块开发.md",
   "10-Projects/wang-keli-interview-ppt/README.md",
-  "50-Logs/2026-06-04 CET-4 知识库开发记录.md",
-  "50-Logs/2026-06-06 CET-4 蒙题技巧模块开发.md",
-  "10-Projects/shuangti-weekly-report/README.md"
+  "50-Logs/2026-06-04 CET-4 知识库开发记录.md"
  ],
  "top_inbound": [
   [
    "10-Projects/cet4-knowledge-base/README.md",
-   37
+   38
   ],
   [
    "20-Knowledge/论文格式模板匹配方法论.md",
-   11
+   12
+  ],
+  [
+   "20-Knowledge/python-docx 文档自动化操作.md",
+   10
   ],
   [
    "20-Knowledge/AIGC检测论文降重分析.md",
    10
   ],
   [
-   "20-Knowledge/python-pptx 演示文稿自动化.md",
+   "20-Knowledge/消融实验方法论：负结果也是结论.md",
    9
   ],
   [
-   "20-Knowledge/python-docx 文档自动化操作.md",
+   "20-Knowledge/python-pptx 演示文稿自动化.md",
    9
   ],
   [
@@ -116,34 +120,34 @@
    9
   ],
   [
+   "20-Knowledge/素材驱动写作 先分层收全再动笔.md",
+   8
+  ],
+  [
+   "20-Knowledge/docx 范文逆向与格式复刻工作流.md",
+   8
+  ],
+  [
    "20-Knowledge/HTML演示文稿转可编辑PPTX工作流.md",
    8
   ],
   [
    "20-Knowledge/Python 函数.md",
    8
-  ],
-  [
-   "20-Knowledge/RAG 评测集构建：分层抽样定稿法.md",
-   7
-  ],
-  [
-   "20-Knowledge/消融实验方法论：负结果也是结论.md",
-   7
-  ],
-  [
-   "20-Knowledge/Word 复杂模板 textbox 拼接布局的精准改造方法论.md",
-   7
   ]
  ],
  "largest": [
   [
    "90-System/Indexes/Knowledge Index.md",
-   7507
+   9174
   ],
   [
    "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md",
    6261
+  ],
+  [
+   "MEMORY.md",
+   5403
   ],
   [
    "10-Projects/python-learning-lab/lessons/08_oop.md",
@@ -158,12 +162,12 @@
    4747
   ],
   [
-   "MEMORY.md",
-   4701
-  ],
-  [
    "20-Knowledge/Ardot Canvas 设计稿制作工作流.md",
    4419
+  ],
+  [
+   "20-Knowledge/dsh 插件更新与维护工作流.md",
+   4222
   ],
   [
    "10-Projects/python-learning-lab/lessons/06_files.md",
@@ -174,16 +178,12 @@
    3992
   ],
   [
-   "20-Knowledge/dsh 插件更新与维护工作流.md",
-   3971
-  ],
-  [
    "10-Projects/python-learning-lab/lessons/05_data_structures.md",
    3917
   ],
   [
-   "90-System/Indexes/Project Index.md",
-   3674
+   "20-Knowledge/dsh 密钥来源与端口残留排查.md",
+   3852
   ]
  ],
  "smallest_lt_300": [

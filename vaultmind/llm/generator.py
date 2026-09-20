@@ -28,13 +28,20 @@ def generate(question: str, context: str, model: str = DEFAULT_MODEL,
         ],
         "options": {"temperature": temperature},
     }
-    with httpx.Client(timeout=timeout) as client:
-        resp = client.post(base_url + "/api/chat", json=payload)
-        resp.raise_for_status()
-        data = resp.json()
+    try:
+        with httpx.Client(timeout=timeout) as client:
+            resp = client.post(base_url + "/api/chat", json=payload)
+            resp.raise_for_status()
+            data = resp.json()
+            elapsed = resp.elapsed.total_seconds()
+    except httpx.HTTPError as e:
+        # 把连接拒绝/超时/HTTP 400（含上下文超限）统一包成 RuntimeError，
+        # 与 embed_texts 保持一致 → CLI 与 API 都能按「依赖故障」处理，而非裸 traceback。
+        raise RuntimeError(
+            "本地生成失败（Ollama）：%s。请确认已执行 `ollama serve` 且模型已加载。" % e) from e
     return data["message"]["content"], {
         "model": data.get("model", model),
-        "generation_s": round(resp.elapsed.total_seconds(), 2),
+        "generation_s": round(elapsed, 2),
         "eval_count": data.get("eval_count"),
         "prompt_eval_count": data.get("prompt_eval_count"),
     }

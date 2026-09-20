@@ -7,8 +7,9 @@ r"""VaultMind 启动器（主入口，批处理只做最简转发）。
 - **服务与窗口解耦**：启动器启动后立即退出，服务常驻后台（关掉窗口不影响服务）
 
 用法：
-  run_api.bat / start.bat   → 双击启动（本文件，无参数）
+  run_api.bat / start.bat   → 双击启动（本文件，无参数；自动同步新笔记后启动）
   launcher.py --no-browser  → 只起服务不开浏览器（自动化/测试）
+  launcher.py --no-sync     → 跳过启动时的自动同步
   stop_api.bat              → 停止服务
 """
 import ctypes
@@ -20,15 +21,15 @@ import sys
 import time
 import urllib.request
 
-PORT = 8000
+PORT = 8001  # 避开英语四级知识库(D:\English study)占用的 8000 端口，两程序互不冲突
 URL = "http://127.0.0.1:%d" % PORT
 ROOT = os.path.dirname(os.path.abspath(__file__))
-PY = r"D:\python\python.exe"
-PYW = os.path.join(os.path.dirname(PY), "pythonw.exe")
+PY = sys.executable  # 用启动本脚本的解释器（run_api.bat 已指定 D:\python\python.exe；换机自动跟随）
 LOG = os.path.join(ROOT, "data", "api_server.log")
 READY_TIMEOUT = 60          # 秒；uvicorn 通常 <5s，留裕量给首次冷启动
 APP_TITLE = "VaultMind"
 NO_BROWSER = "--no-browser" in sys.argv
+NO_SYNC = "--no-sync" in sys.argv
 
 
 def pid_on_port(port=PORT):
@@ -137,6 +138,28 @@ def open_browser():
         webbrowser.open(URL)
 
 
+def auto_sync_vault():
+    """启动前自动检测 Vault 是否有新笔记：有则轻量重建索引+向量（--light），
+    让新增笔记即刻可检索。Ollama 未运行 / 无需同步 / 失败时静默降级，不阻塞启动。"""
+    if NO_SYNC:
+        return
+    sync = os.path.join(ROOT, "scripts", "sync_vault.py")
+    if not os.path.exists(sync):
+        return
+    show(" 检查知识库是否有新笔记（有则自动重建索引+向量）...")
+    try:
+        r = subprocess.run(
+            [PY if os.path.exists(PY) else sys.executable, sync, "--light"],
+            cwd=ROOT, timeout=900)
+    except Exception as e:
+        show(" [同步] 自动同步跳过：%s" % e)
+        return
+    if r.returncode == 0:
+        show(" [同步] 索引/向量已最新，新笔记已可检索。")
+    else:
+        show(" [同步] 自动同步未完成（可能 Ollama 未运行），服务仍将启动，旧索引可先回答。")
+
+
 def main():
     show("=" * 52)
     show(" VaultMind · 个人知识库 RAG 问答与评测系统")
@@ -155,6 +178,9 @@ def main():
     if port_in_use() and not health_ok():
         error("端口 %d 已被其它程序占用，但不是 VaultMind 服务。\n"
               "请先关闭占用该端口的程序，或修改 launcher.py 里的 PORT。" % PORT)
+
+    # 1.5) 自动同步：检测到新笔记 → 重建索引+向量，让新笔记即刻可检索
+    auto_sync_vault()
 
     # 2) 启动服务（后台常驻，脱离本窗口）
     os.makedirs(os.path.dirname(LOG), exist_ok=True)

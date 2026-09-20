@@ -114,7 +114,7 @@ D:\RAG\docs\立项书-详细版.md      ← 完整设计（按需）
 | 网络 | HuggingFace ❌ → 用 ModelScope；GitHub 直连超时 → gh-proxy.com 镜像；PyPI ✅ |
 | 硬件 | RTX 4050 Laptop 6GB + 32GB 内存；C 盘剩 47GB（勿放模型）、D 盘剩 ~133GB |
 | 模型 | 已齐：bge-m3（embedding）+ qwen2.5:7b-instruct（生成）+ qwen2.5-coder:7b，均在 `D:\本地模型` |
-| 服务/bat | **启动逻辑一律放 `launcher.py`，bat 只做最简转发且必须纯 ASCII**（2026-09-17 修复，见 §7b）；服务探活 `curl.exe -s http://127.0.0.1:8000/health`、Ollama 探活 `curl.exe -s http://127.0.0.1:11434/api/tags`（exit 7=掉线） |
+| 服务/bat | **启动逻辑一律放 `launcher.py`，bat 只做最简转发且必须纯 ASCII**（2026-09-17 修复，见 §7b）；服务探活 `curl.exe -s http://127.0.0.1:8001/health`、Ollama 探活 `curl.exe -s http://127.0.0.1:11434/api/tags`（exit 7=掉线） |
 
 ## 7b. 本机启动器事实（2026-09-17 实测，来自知识库《Windows Python 项目启动器模式》）
 

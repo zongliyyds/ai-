@@ -70,11 +70,18 @@ def test_expand_by_links(tmp_path):
     con.close()
 
     hit_a = make_hit("a.md", "A", 0.9, chunk_id=1)
-    out = expand_by_links([hit_a], n=2, db_path=db)
-    assert len(out) == 3                      # 1 原有 + 2 扩展
-    assert out[1].rel == "b.md" and out[2].rel == "b.md"  # 每目标最多 2 块
-    assert out[1].source == "link1hop"
-    assert out[1].score < out[0].score        # 扩展块排在尾部
+    # n=2：预算被首个目标 b.md 的 2 块耗尽 → 验证「每目标最多 2 块」+ 尾部排序
+    out2 = expand_by_links([hit_a], n=2, db_path=db)
+    assert [h.rel for h in out2] == ["a.md", "b.md", "b.md"]
+    assert out2[1].source == "link1hop"
+    assert out2[1].score < out2[0].score        # 扩展块排在尾部
+
+    # n=5：预算充足 → 必须继续扩到第二个目标 c.md；且自链 a→a 不得被扩展
+    out5 = expand_by_links([hit_a], n=5, db_path=db)
+    rels = [h.rel for h in out5]
+    assert "c.md" in rels, "多目标应被依次扩展，实际: %s" % rels
+    assert rels.count("a.md") == 1, "自链 a→a 不得被扩展（只保留原始命中）"
+
     # 上限 n=1 → 只补 1 块
     assert len(expand_by_links([hit_a], n=1, db_path=db)) == 2
 

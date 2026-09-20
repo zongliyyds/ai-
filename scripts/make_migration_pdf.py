@@ -12,7 +12,8 @@ import os
 import fitz
 from datetime import datetime
 
-OUT = r"D:\RAG\docs\Ollama本地模型迁移工作流.pdf"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT = os.path.join(ROOT, "docs", "Ollama本地模型迁移工作流.pdf")
 FONT_CANDIDATES = [
     r"C:\Windows\Fonts\msyh.ttc",
     r"C:\Windows\Fonts\simhei.ttf",

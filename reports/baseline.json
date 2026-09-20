@@ -1,0 +1,916 @@
+{
+ "generated": "2026-09-20 14:34:13",
+ "mode": "bm25",
+ "top_k": 10,
+ "metrics": {
+  "recall@1": 0.8167,
+  "recall@5": 0.9333,
+  "recall@10": 0.9333,
+  "mrr": 0.8672,
+  "ndcg@10": 0.884,
+  "avg_latency_s": 0.003,
+  "num_queries": 60
+ },
+ "details": [
+  {
+   "id": "cand-006",
+   "question": "论文格式模板匹配方法论 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/论文格式模板匹配方法论.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/论文格式模板匹配方法论.md",
+    "20-Knowledge/论文格式模板匹配方法论.md",
+    "20-Knowledge/论文格式模板匹配方法论.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-007",
+   "question": "## 关键模式：模板 vs 文字要求的常见矛盾 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/论文格式模板匹配方法论.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/论文格式模板匹配方法论.md",
+    "50-Logs/2026-06-11 课程论文项目完成.md",
+    "20-Knowledge/论文格式模板匹配方法论.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-016",
+   "question": "python-pptx 演示文稿自动化 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/python-pptx 演示文稿自动化.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/python-pptx 演示文稿自动化.md",
+    "20-Knowledge/python-pptx 演示文稿自动化.md",
+    "60-References/王克力求职自我介绍PPT项目.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-017",
+   "question": "## 品牌视觉系统 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/python-pptx 演示文稿自动化.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/python-pptx 演示文稿自动化.md",
+    "20-Knowledge/python-pptx 演示文稿自动化.md",
+    "10-Projects/mixue-ad-report/README.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-021",
+   "question": "python-docx 文档自动化操作 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/python-docx 文档自动化操作.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/python-docx 文档自动化操作.md",
+    "20-Knowledge/python-docx 文档自动化操作.md",
+    "20-Knowledge/python-docx 文档自动化操作.md"
+   ],
+   "latency_s": 0.005
+  },
+  {
+   "id": "cand-022",
+   "question": "## 多文档合并模式 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/python-docx 文档自动化操作.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/python-docx 文档自动化操作.md",
+    "20-Knowledge/python-docx 文档自动化操作.md",
+    "90-System/Indexes/Knowledge Index.md"
+   ],
+   "latency_s": 0.004
+  },
+  {
+   "id": "cand-026",
+   "question": "SQLite FTS5 全文搜索配置 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/SQLite FTS5 全文搜索配置.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/SQLite FTS5 全文搜索配置.md",
+    "20-Knowledge/SQLite FTS5 全文搜索配置.md",
+    "20-Knowledge/SQLite FTS5 全文搜索配置.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-031",
+   "question": "Python 数据结构 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/Python 数据结构.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Python 数据结构.md",
+    "20-Knowledge/Python 初学者学习路线.md",
+    "20-Knowledge/jieba 中文分词集成.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-036",
+   "question": "HTML演示文稿转可编辑PPTX工作流 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/HTML演示文稿转可编辑PPTX工作流.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/HTML演示文稿转可编辑PPTX工作流.md",
+    "60-References/王克力求职自我介绍PPT项目.md",
+    "20-Knowledge/Ardot Canvas 设计稿制作工作流.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-037",
+   "question": "## 技术方案/关键模式 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/HTML演示文稿转可编辑PPTX工作流.md"
+   ],
+   "first_rank": 2,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/多示例标签页前端交互模式.md",
+    "20-Knowledge/HTML演示文稿转可编辑PPTX工作流.md",
+    "20-Knowledge/前端子标签过滤模式.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-042",
+   "question": "## 适用场景 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/Python 函数.md"
+   ],
+   "first_rank": 0,
+   "hit_in_top5": false,
+   "top3": [
+    "20-Knowledge/前端子标签过滤模式.md",
+    "20-Knowledge/Godot 4 headless 冒烟自测工作流.md",
+    "20-Knowledge/Python 面向对象编程.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-046",
+   "question": "Word 复杂模板 textbox 拼接布局的精准改造方法论 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/Word 复杂模板 textbox 拼接布局的精准改造方法论.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Word 复杂模板 textbox 拼接布局的精准改造方法论.md",
+    "20-Knowledge/Word 复杂模板 textbox 拼接布局的精准改造方法论.md",
+    "20-Knowledge/Word 复杂模板 textbox 拼接布局的精准改造方法论.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-047",
+   "question": "## 场景识别：什么时候不能用 editor_sdk 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/Word 复杂模板 textbox 拼接布局的精准改造方法论.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Word 复杂模板 textbox 拼接布局的精准改造方法论.md",
+    "20-Knowledge/Word 复杂模板 textbox 拼接布局的精准改造方法论.md",
+    "20-Knowledge/Word 复杂模板 textbox 拼接布局的精准改造方法论.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-052",
+   "question": "## 五版全流程对照（2026-06-17） 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/PaperPass降AIGC五版对照方法论.md"
+   ],
+   "first_rank": 2,
+   "hit_in_top5": true,
+   "top3": [
+    "50-Logs/2026-06-17 降重实验五版对照.md",
+    "20-Knowledge/PaperPass降AIGC五版对照方法论.md",
+    "20-Knowledge/PaperPass降AIGC五版对照方法论.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-056",
+   "question": "Python 面向对象编程 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/Python 面向对象编程.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Python 面向对象编程.md",
+    "20-Knowledge/jieba 中文分词集成.md",
+    "20-Knowledge/Python 函数.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-061",
+   "question": "Python 变量与数据类型 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/Python 变量与数据类型.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Python 变量与数据类型.md",
+    "20-Knowledge/Python 变量与数据类型.md",
+    "10-Projects/python-learning-lab/lessons/01_variables.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-066",
+   "question": "社会实践报告写作方法论 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/社会实践报告写作方法论.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/社会实践报告写作方法论.md",
+    "10-Projects/course-papers-chongqing-yitong/README.md",
+    "20-Knowledge/社会实践报告写作方法论.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-071",
+   "question": "TF-IDF 中文文本去重实践 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/TF-IDF 中文文本去重实践.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/TF-IDF 中文文本去重实践.md",
+    "20-Knowledge/TF-IDF 中文文本去重实践.md",
+    "20-Knowledge/jieba 中文分词集成.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-072",
+   "question": "## 技术方案 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/TF-IDF 中文文本去重实践.md"
+   ],
+   "first_rank": 0,
+   "hit_in_top5": false,
+   "top3": [
+    "40-Decisions/2026-06-03 Python Learning Lab 技术选型.md",
+    "20-Knowledge/de-aigc-writing-techniques.md",
+    "20-Knowledge/前端子标签过滤模式.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-076",
+   "question": "Python 文件操作与异常处理 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/Python 文件操作与异常处理.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Python 文件操作与异常处理.md",
+    "20-Knowledge/Python 文件操作与异常处理.md",
+    "20-Knowledge/Python 数据结构.md"
+   ],
+   "latency_s": 0.004
+  },
+  {
+   "id": "cand-081",
+   "question": "Python 循环 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/Python 循环.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Python 循环.md",
+    "20-Knowledge/jieba 中文分词集成.md",
+    "20-Knowledge/Python 函数.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-086",
+   "question": "多示例标签页前端交互模式 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/多示例标签页前端交互模式.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/多示例标签页前端交互模式.md",
+    "20-Knowledge/前端子标签过滤模式.md",
+    "20-Knowledge/多示例标签页前端交互模式.md"
+   ],
+   "latency_s": 0.005
+  },
+  {
+   "id": "cand-092",
+   "question": "## 背景 是什么？怎么做？",
+   "docs": [
+    "40-Decisions/2026-09-01 PPTX导出具方案选择.md"
+   ],
+   "first_rank": 0,
+   "hit_in_top5": false,
+   "top3": [
+    "50-Logs/2026-09-06 登顶贺卡与碎片收集系统.md",
+    "40-Decisions/2026-06-03 Python Learning Lab 技术选型.md",
+    "20-Knowledge/SQLite FTS5 全文搜索配置.md"
+   ],
+   "latency_s": 0.001
+  },
+  {
+   "id": "cand-094",
+   "question": "## 理由 是什么？怎么做？",
+   "docs": [
+    "40-Decisions/2026-09-01 PPTX导出具方案选择.md"
+   ],
+   "first_rank": 5,
+   "hit_in_top5": true,
+   "top3": [
+    "40-Decisions/2026-08-25 语音识别三层降级路由选择.md",
+    "40-Decisions/2026-06-03 Python Learning Lab 技术选型.md",
+    "20-Knowledge/SQLite FTS5 全文搜索配置.md"
+   ],
+   "latency_s": 0.001
+  },
+  {
+   "id": "cand-096",
+   "question": "LLM 响应提速：先判 prefill 还是 decode 瓶颈 中的「## 一句话结论」讲了什么？",
+   "docs": [
+    "20-Knowledge/LLM 响应提速：先判 prefill 还是 decode 瓶颈.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/LLM 响应提速：先判 prefill 还是 decode 瓶颈.md",
+    "20-Knowledge/LLM 响应提速：先判 prefill 还是 decode 瓶颈.md",
+    "20-Knowledge/LLM 响应提速：先判 prefill 还是 decode 瓶颈.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-097",
+   "question": "## 诊断决策树 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/LLM 响应提速：先判 prefill 还是 decode 瓶颈.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/LLM 响应提速：先判 prefill 还是 decode 瓶颈.md",
+    "20-Knowledge/Godot 角色浮空诊断与修复.md",
+    "20-Knowledge/Godot 角色浮空诊断与修复.md"
+   ],
+   "latency_s": 0.001
+  },
+  {
+   "id": "cand-101",
+   "question": "游戏成就碎片系统：条件重叠与贪心收集模式 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/游戏成就碎片系统 条件重叠与贪心收集模式.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/游戏成就碎片系统 条件重叠与贪心收集模式.md",
+    "20-Knowledge/游戏成就碎片系统 条件重叠与贪心收集模式.md",
+    "90-System/Indexes/Knowledge Index.md"
+   ],
+   "latency_s": 0.004
+  },
+  {
+   "id": "cand-102",
+   "question": "## 问题：条件重叠的三个典型形态 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/游戏成就碎片系统 条件重叠与贪心收集模式.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/游戏成就碎片系统 条件重叠与贪心收集模式.md",
+    "20-Knowledge/游戏成就碎片系统 条件重叠与贪心收集模式.md",
+    "20-Knowledge/游戏成就碎片系统 条件重叠与贪心收集模式.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-106",
+   "question": "Windows Java 环境配置与 VSCode 排查 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/Windows Java 环境配置与 VSCode 排查.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Windows Java 环境配置与 VSCode 排查.md",
+    "20-Knowledge/Windows Java 环境配置与 VSCode 排查.md",
+    "50-Logs/2026-06-19 Java 与 VSCode 配置排查.md"
+   ],
+   "latency_s": 0.004
+  },
+  {
+   "id": "cand-107",
+   "question": "## 标准配置（三处一致） 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/Windows Java 环境配置与 VSCode 排查.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Windows Java 环境配置与 VSCode 排查.md",
+    "20-Knowledge/Windows Java 环境配置与 VSCode 排查.md",
+    "20-Knowledge/dsh 密钥来源与端口残留排查.md"
+   ],
+   "latency_s": 0.001
+  },
+  {
+   "id": "cand-111",
+   "question": "Python 模块与包 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/Python 模块与包.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Python 模块与包.md",
+    "20-Knowledge/Python 模块与包.md",
+    "20-Knowledge/Python 面向对象编程.md"
+   ],
+   "latency_s": 0.004
+  },
+  {
+   "id": "cand-116",
+   "question": "SQLite FTS5 模式迁移与索引重建 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/SQLite FTS5 模式迁移与索引重建.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/SQLite FTS5 模式迁移与索引重建.md",
+    "20-Knowledge/SQLite FTS5 模式迁移与索引重建.md",
+    "90-System/Indexes/Knowledge Index.md"
+   ],
+   "latency_s": 0.004
+  },
+  {
+   "id": "cand-121",
+   "question": "jieba 中文分词集成 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/jieba 中文分词集成.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/jieba 中文分词集成.md",
+    "20-Knowledge/jieba 中文分词集成.md",
+    "20-Knowledge/jieba 中文分词集成.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-122",
+   "question": "## 集成代码 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/jieba 中文分词集成.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/jieba 中文分词集成.md",
+    "20-Knowledge/SQLite FTS5 全文搜索配置.md",
+    "20-Knowledge/jieba 中文分词集成.md"
+   ],
+   "latency_s": 0.001
+  },
+  {
+   "id": "cand-126",
+   "question": "Godot 4.7 GDScript 踩坑清单 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md",
+    "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md",
+    "20-Knowledge/Godot 4.7 GDScript 踩坑清单.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-131",
+   "question": "Knowledge Index 中的「## LLM / AI 应用」讲了什么？",
+   "docs": [
+    "90-System/Indexes/Knowledge Index.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "90-System/Indexes/Knowledge Index.md",
+    "90-System/Indexes/Knowledge Index.md",
+    "AI Knowledge Hub.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-136",
+   "question": "第 8 课：面向对象编程 (OOP) 中的「## 学习目标」讲了什么？",
+   "docs": [
+    "10-Projects/python-learning-lab/lessons/08_oop.md"
+   ],
+   "first_rank": 2,
+   "hit_in_top5": true,
+   "top3": [
+    "10-Projects/python-learning-lab/lessons/07_modules.md",
+    "10-Projects/python-learning-lab/lessons/08_oop.md",
+    "10-Projects/python-learning-lab/lessons/08_oop.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-137",
+   "question": "## 8.1 类与对象 是什么？怎么做？",
+   "docs": [
+    "10-Projects/python-learning-lab/lessons/08_oop.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "10-Projects/python-learning-lab/lessons/08_oop.md",
+    "10-Projects/python-learning-lab/lessons/08_oop.md",
+    "20-Knowledge/Python 面向对象编程.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-142",
+   "question": "## 标准工作流（8 步） 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/Ardot Canvas 设计稿制作工作流.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Ardot Canvas 设计稿制作工作流.md",
+    "20-Knowledge/Ardot Canvas 设计稿制作工作流.md",
+    "20-Knowledge/Ardot Canvas 设计稿制作工作流.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-146",
+   "question": "MEMORY 中的「## 长期指令」讲了什么？",
+   "docs": [
+    "MEMORY.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "MEMORY.md",
+    "40-Decisions/2026-06-06 CET-4 4级基础模块与刘晓艳词汇书主源.md",
+    "MEMORY.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-147",
+   "question": "## 20-Knowledge 知识条目索引 是什么？怎么做？",
+   "docs": [
+    "MEMORY.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "MEMORY.md",
+    "MEMORY.md",
+    "MEMORY.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-148",
+   "question": "第 6 课：文件操作 中的「## 学习目标」讲了什么？",
+   "docs": [
+    "10-Projects/python-learning-lab/lessons/06_files.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "10-Projects/python-learning-lab/lessons/06_files.md",
+    "10-Projects/python-learning-lab/lessons/05_data_structures.md",
+    "10-Projects/python-learning-lab/lessons/06_files.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-149",
+   "question": "## 6.1 打开和关闭文件 是什么？怎么做？",
+   "docs": [
+    "10-Projects/python-learning-lab/lessons/06_files.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "10-Projects/python-learning-lab/lessons/06_files.md",
+    "20-Knowledge/Python 文件操作与异常处理.md",
+    "20-Knowledge/Python 文件操作与异常处理.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-153",
+   "question": "雾都拾光·洪崖洞天 — Godot 3D 平台跳跃 Demo 中的「## 目标」讲了什么？",
+   "docs": [
+    "10-Projects/wudu-hongyadong-godot-demo/README.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "10-Projects/wudu-hongyadong-godot-demo/README.md",
+    "10-Projects/wudu-hongyadong-godot-demo/README.md",
+    "50-Logs/2026-08-19 雾都拾光洪崖洞天Godot游戏Demo开发.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-154",
+   "question": "## 当前状态 是什么？怎么做？",
+   "docs": [
+    "10-Projects/wudu-hongyadong-godot-demo/README.md"
+   ],
+   "first_rank": 0,
+   "hit_in_top5": false,
+   "top3": [
+    "10-Projects/mixue-ad-report/README.md",
+    "10-Projects/exam-review-doc-gen/README.md",
+    "10-Projects/course-papers-chongqing-yitong/README.md"
+   ],
+   "latency_s": 0.001
+  },
+  {
+   "id": "cand-158",
+   "question": "dsh 插件更新与维护工作流 中的「## 核心观点」讲了什么？",
+   "docs": [
+    "20-Knowledge/dsh 插件更新与维护工作流.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/dsh 插件更新与维护工作流.md",
+    "20-Knowledge/dsh 插件更新与维护工作流.md",
+    "50-Logs/2026-09-12 dsh 插件检查更新.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-163",
+   "question": "第 5 课：数据结构 中的「## 学习目标」讲了什么？",
+   "docs": [
+    "10-Projects/python-learning-lab/lessons/05_data_structures.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "10-Projects/python-learning-lab/lessons/05_data_structures.md",
+    "10-Projects/python-learning-lab/lessons/04_functions.md",
+    "10-Projects/python-learning-lab/lessons/05_data_structures.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-164",
+   "question": "## 5.1 列表 (List) 是什么？怎么做？",
+   "docs": [
+    "10-Projects/python-learning-lab/lessons/05_data_structures.md"
+   ],
+   "first_rank": 2,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Python 数据结构.md",
+    "10-Projects/python-learning-lab/lessons/05_data_structures.md",
+    "10-Projects/python-learning-lab/lessons/05_data_structures.md"
+   ],
+   "latency_s": 0.001
+  },
+  {
+   "id": "cand-169",
+   "question": "## Completed Projects（全部完成） 是什么？怎么做？",
+   "docs": [
+    "90-System/Indexes/Project Index.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "90-System/Indexes/Project Index.md",
+    "50-Logs/2026-06-17 知识库全面整理.md",
+    "90-System/Indexes/Project Index.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-171",
+   "question": "第 7 课：模块与包 中的「## 学习目标」讲了什么？",
+   "docs": [
+    "10-Projects/python-learning-lab/lessons/07_modules.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "10-Projects/python-learning-lab/lessons/07_modules.md",
+    "10-Projects/python-learning-lab/lessons/07_modules.md",
+    "10-Projects/python-learning-lab/lessons/06_files.md"
+   ],
+   "latency_s": 0.005
+  },
+  {
+   "id": "cand-176",
+   "question": "AI Knowledge Hub 中的「## 快速入口」讲了什么？",
+   "docs": [
+    "AI Knowledge Hub.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "AI Knowledge Hub.md",
+    "AI Knowledge Hub.md",
+    "50-Logs/2026-05-29 AI Knowledge Base Init.md"
+   ],
+   "latency_s": 0.004
+  },
+  {
+   "id": "cand-184",
+   "question": "生活中的经济学论文 中的「## 目标」讲了什么？",
+   "docs": [
+    "10-Projects/economics-paper/README.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "10-Projects/economics-paper/README.md",
+    "10-Projects/economics-paper/README.md",
+    "10-Projects/economics-paper/README.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-190",
+   "question": "## 黄金法则 是什么？怎么做？",
+   "docs": [
+    "20-Knowledge/AI 工作流四步法.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/AI 工作流四步法.md",
+    "MEMORY.md",
+    "90-System/Indexes/Knowledge Index.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-194",
+   "question": "Python 练习题生成提示词 中的「## 用途」讲了什么？",
+   "docs": [
+    "30-Prompts/Python 练习题生成提示词.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "30-Prompts/Python 练习题生成提示词.md",
+    "90-System/Indexes/Prompt Index.md",
+    "50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md"
+   ],
+   "latency_s": 0.003
+  },
+  {
+   "id": "cand-195",
+   "question": "## 提示词 是什么？怎么做？",
+   "docs": [
+    "30-Prompts/Python 练习题生成提示词.md"
+   ],
+   "first_rank": 3,
+   "hit_in_top5": true,
+   "top3": [
+    "50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md",
+    "90-System/Indexes/Prompt Index.md",
+    "30-Prompts/Python 练习题生成提示词.md"
+   ],
+   "latency_s": 0.002
+  },
+  {
+   "id": "cand-199",
+   "question": "2026-06-03 Python Learning Lab 技术选型决策 中的「## 决策」讲了什么？",
+   "docs": [
+    "40-Decisions/2026-06-03 Python Learning Lab 技术选型.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "40-Decisions/2026-06-03 Python Learning Lab 技术选型.md",
+    "50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md",
+    "40-Decisions/2026-06-03 Python Learning Lab 技术选型.md"
+   ],
+   "latency_s": 0.004
+  },
+  {
+   "id": "cand-204",
+   "question": "2026-06-04 CET-4 三层示例与中英对照结构 中的「## 决策」讲了什么？",
+   "docs": [
+    "40-Decisions/2026-06-04 CET-4 三层示例与中英对照结构.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "40-Decisions/2026-06-04 CET-4 三层示例与中英对照结构.md",
+    "90-System/Indexes/Decision Index.md",
+    "60-References/CET-4 知识库原始项目.md"
+   ],
+   "latency_s": 0.004
+  },
+  {
+   "id": "cand-209",
+   "question": "2026-06-04 CET-4 知识库技术选型 中的「## 决策」讲了什么？",
+   "docs": [
+    "40-Decisions/2026-06-04 CET-4 知识库技术选型.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "40-Decisions/2026-06-04 CET-4 知识库技术选型.md",
+    "40-Decisions/2026-06-04 CET-4 知识库技术选型.md",
+    "90-System/Indexes/Decision Index.md"
+   ],
+   "latency_s": 0.005
+  },
+  {
+   "id": "cand-216",
+   "question": "2026-06-03 Python Learning Lab 知识沉淀 中的「## 本轮目标」讲了什么？",
+   "docs": [
+    "50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md"
+   ],
+   "first_rank": 1,
+   "hit_in_top5": true,
+   "top3": [
+    "50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md",
+    "50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md",
+    "50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md"
+   ],
+   "latency_s": 0.006
+  },
+  {
+   "id": "cand-217",
+   "question": "## 关键产出 是什么？怎么做？",
+   "docs": [
+    "50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md"
+   ],
+   "first_rank": 2,
+   "hit_in_top5": true,
+   "top3": [
+    "20-Knowledge/Python 面向对象编程.md",
+    "50-Logs/2026-06-03 Python Learning Lab 知识沉淀.md",
+    "50-Logs/2026-08-25 认知植入WO-010.md"
+   ],
+   "latency_s": 0.003
+  }
+ ]
+}

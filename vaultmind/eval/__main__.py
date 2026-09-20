@@ -13,7 +13,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="vaultmind.eval", description="VaultMind 检索评测")
     ap.add_argument("--include-draft", action="store_true",
                     help="把 status=draft 的条目也纳入（仅预览用）")
-    ap.add_argument("--mode", default="hybrid", choices=["bm25", "vector", "hybrid"])
+    ap.add_argument("--mode", default="bm25", choices=["bm25", "vector", "hybrid"])
     ap.add_argument("--top", type=int, default=10)
     ap.add_argument("--out", default=None)
     args = ap.parse_args(argv)

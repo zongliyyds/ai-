@@ -45,7 +45,8 @@ REPORTS = ROOT / "reports"
 BASELINE_MD = REPORTS / "baseline.md"
 ABLATION_MD = REPORTS / "ablation.md"
 SYNC_REPORT = REPORTS / "sync_report.md"
-STATE = DATA_DIR / "sync_state.json"
+STATE = DATA_DIR / "sync_state.json"          # 全量同步指纹（含复验/锚点/PDF/pytest）
+INDEX_STATE = DATA_DIR / "index_state.json"   # 轻量同步指纹（仅索引+向量）
 
 ANCHOR_FILES = [
     "README.md", "PLAN.md", "CHANGELOG.md",
@@ -110,11 +111,11 @@ def vault_fingerprint():
     }
 
 
-def change_vs_last(fp):
-    if not STATE.exists():
+def change_vs_last(fp, state_path=STATE):
+    if not state_path.exists():
         return None, "无历史指纹（首次运行）"
     try:
-        old = json.loads(STATE.read_text(encoding="utf-8"))
+        old = json.loads(state_path.read_text(encoding="utf-8"))
     except Exception as e:
         return None, "历史指纹读取失败：%s" % e
     if old.get("hash") == fp["hash"]:
@@ -123,9 +124,9 @@ def change_vs_last(fp):
     return True, "相对上次变化：md %+d 篇（%s → %s）" % (diff, old.get("md_count", "?"), fp["md_count"])
 
 
-def save_state(fp):
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    STATE.write_text(json.dumps(fp, ensure_ascii=False, indent=1), encoding="utf-8")
+def save_state(fp, state_path=STATE):
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_path.write_text(json.dumps(fp, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 # ---------------------------------------------------------------- 读数（现场解析）
@@ -240,7 +241,7 @@ def last_ingest_secs():
 
 # ---------------------------------------------------------------- 回写锚点
 
-def anchor_edits(base, abl, aud, dbc, pytest_line, metrics_fresh=True):
+def anchor_edits(base, abl, aud, dbc, metrics_fresh=True):
     """返回 [(文件, 旧串, 新串)]；旧串用正则匹配，保证幂等。
 
     metrics_fresh=False（--skip-eval / dry-run）时不回写指标类锚点，
@@ -259,11 +260,16 @@ def anchor_edits(base, abl, aud, dbc, pytest_line, metrics_fresh=True):
         "（%d 篇笔记 / %.1f 万字 / %d 个 H2 / %d 条双链）" % (docs, wan, aud["h2"], aud["links"]))
     add("README.md", r"docs\(\d+\)/chunks\(\d+\)/links\(\d+\)",
         "docs(%d)/chunks(%d)/links(%d)" % (docs, chunks, links))
+    # pytest 条数（现场 count_tests()，永远是新值；2026-09 曾漂移 79→84 未被覆盖）
+    add("README.md", r"pytest \d+ 条", "pytest %d 条" % n_tests)
+    add("README.md", r"# \d+ passed", "# %d passed" % n_tests)
 
     # 指标类（仅当基线刚重跑过）
     if metrics_fresh:
         add("README.md", r"\| 平均延迟 \| [\d.]+ s/查询 \|", "| 平均延迟 | %s s/查询 |" % lat)
         add("README.md", r"\| Recall@1 \| [\d.]+ \|", "| Recall@1 | %s |" % fmt4(base["recall@1"]))
+        add("README.md", r"\| Recall@5 \| \*\*[\d.]+\*\* \|", "| Recall@5 | **%s** |" % fmt4(base["recall@5"]))
+        add("README.md", r"\| Recall@10 \| [\d.]+ \|", "| Recall@10 | %s |" % fmt4(base["recall@10"]))
         add("README.md", r"\| MRR \| \*\*[\d.]+\*\* \|", "| MRR | **%s** |" % fmt4(base["mrr"]))
         add("README.md", r"\| nDCG@10 \| \*\*[\d.]+\*\* \|", "| nDCG@10 | **%s** |" % fmt4(base["ndcg@10"]))
 
@@ -304,11 +310,12 @@ def anchor_edits(base, abl, aud, dbc, pytest_line, metrics_fresh=True):
         "数据治理管道：%d 篇笔记的**体检基线**（%d H2 / %d 双链 / %d 死链 / %d 孤儿）"
         % (docs, aud["h2"], aud["links"], aud["dead"], aud["orphans"]))
     add("docs/简历bullet.md", r"「为 \d+ 篇知识库建立评测", "「为 %d 篇知识库建立评测" % docs)
+    add("docs/简历bullet.md", r"pytest \d+ 条 \+ pre-commit", "pytest %d 条 + pre-commit" % n_tests)
 
     # PLAN 快照
     add("PLAN.md", r"RRF，[\d,]+ chunks）", "RRF，%s chunks）" % format(chunks, ","))
-    add("PLAN.md", r"正式基线（Recall@5=[\d.]+ / MRR=[\d.]+ / nDCG@10=[\d.]+",
-        "正式基线（Recall@5=%s / MRR=%s / nDCG@10=%s"
+    add("PLAN.md", r"正式基线（(?:bm25：)?Recall@5=[\d.]+ / MRR=[\d.]+ / nDCG@10=[\d.]+",
+        "正式基线（bm25：Recall@5=%s / MRR=%s / nDCG@10=%s"
         % (fmt4(base["recall@5"]), fmt4(base["mrr"]), fmt4(base["ndcg@10"])))
     return edits
 
@@ -347,12 +354,13 @@ def main(argv=None) -> int:
     ap.add_argument("--no-change", action="store_true", help="Vault 未变也强制执行")
     ap.add_argument("--skip-eval", action="store_true", help="跳过 60 条 gold 复验")
     ap.add_argument("--yes", action="store_true", help="不交互确认")
+    ap.add_argument("--light", action="store_true",
+                    help="轻量同步：只重建索引+向量（让新笔记可检索），跳过复验/锚点/PDF/pytest")
     args = ap.parse_args(argv)
 
-    global ingest_secs, n_tests, title_easy, title_hard
+    global ingest_secs, n_tests
     ingest_secs = "?"
     n_tests = 0
-    title_easy = title_hard = 0.0
 
     t_start = time.time()
     run = Run()
@@ -372,12 +380,19 @@ def main(argv=None) -> int:
     run.ok("前置检查", "Vault 可读 + Ollama 在线")
 
     fp = vault_fingerprint()
+
+    if args.light:
+        return light_sync(run, fp, args, t_start)
+
     changed, why = change_vs_last(fp)
     say("Vault 指纹：%d 篇 md，hash=%s｜%s" % (fp["md_count"], fp["hash"], why))
     if changed is False and not args.no_change:
-        run.warn("变更检测", "Vault 未变化；如仍要重建请加 --no-change")
-    else:
-        run.ok("变更检测", why)
+        # 变更检测真正短路：未变化时不再全量重建（索引/向量/复验/回归），
+        # 使 sync 变成可安全重复触发的幂等命令（一键同步 / 自动同步依赖此行为）。
+        run.ok("变更检测", "Vault 未变化，跳过本次同步")
+        say("      → 未变化，跳过全流程（如需强制重建请加 --no-change）")
+        return finish(run, fp, None, args.dry_run, t_start)
+    run.ok("变更检测", why)
 
     old_baseline = parse_baseline()
 
@@ -414,10 +429,10 @@ def main(argv=None) -> int:
     if args.skip_eval or args.dry_run:
         run.warn("gold 复验", "已跳过（%s）" % ("DRY-RUN" if args.dry_run else "--skip-eval"))
     else:
-        say("\n[3/6] 复验 60 条 gold（hybrid，top_k=10）...")
+        say("\n[3/6] 复验 60 条 gold（bm25，top_k=10）...")
         gold = load_gold()
-        details, metrics = run_eval(gold, mode="hybrid", top_k=10)
-        write_report(details, metrics, mode="hybrid", top_k=10)
+        details, metrics = run_eval(gold, mode="bm25", top_k=10)
+        write_report(details, metrics, mode="bm25", top_k=10)
         base = parse_baseline()
         for k in ("recall@1", "recall@5", "recall@10", "mrr", "ndcg@10", "latency"):
             run.metric(k, old_baseline.get(k), base.get(k))
@@ -464,11 +479,10 @@ def main(argv=None) -> int:
     # 4. 回写锚点
     say("\n[5/6] 回写文档锚点（从 reports 现场取数）...")
     abl = parse_ablation()
-    title_easy, title_hard = 1.0000, 0.3750      # E4 标题重排分层（ablation.md 结论段）
     n_tests = count_tests()
     try:
         # --skip-eval 时 baseline.md 未重跑，指标锚点保持原样（否则会用旧值覆盖新值）
-        edits = anchor_edits(base, abl, aud, db_counts(), None,
+        edits = anchor_edits(base, abl, aud, db_counts(),
                              metrics_fresh=not (args.skip_eval or args.dry_run))
         changes = apply_edits(edits, args.dry_run)
         hit = [c for c in changes if c[1] != "未命中"]
@@ -511,7 +525,40 @@ def count_tests():
     return int(m.group(1)) if m else 0
 
 
-def finish(run, fp, abl, dry_run, t_start):
+def light_sync(run, fp, args, t_start):
+    """轻量同步：只重建索引+向量（让新笔记即刻可检索），用独立指纹 index_state.json。
+
+    刻意不写 sync_report、不更新全量指纹 sync_state.json——「是否要跑全量同步
+    （复验/锚点/PDF/pytest）」的判断不受轻量同步污染，全量 sync 仍会在 Vault 变化时触发。
+    """
+    changed, why = change_vs_last(fp, INDEX_STATE)
+    say("Vault 指纹：%d 篇 md，hash=%s｜%s" % (fp["md_count"], fp["hash"], why))
+    if changed is False and not args.no_change:
+        run.ok("变更检测", "索引已最新，跳过重建")
+        say("      → 索引已最新（%s）" % why)
+    else:
+        if args.dry_run:
+            from vaultmind.ingest import auditor, chunker, scanner
+            dd = scanner.scan_docs()
+            mm = auditor.audit(dd)
+            run.warn("重建索引", "DRY-RUN 跳过（docs=%d chunks≈%d）"
+                     % (mm["doc_count"], len(chunker.chunk_all(dd))))
+            run.warn("重建向量", "DRY-RUN 跳过")
+        else:
+            res = run_pipeline()
+            secs = "%.1f" % res["metrics"]["elapsed_sec"]
+            docs, chunks, links = db_counts()
+            run.ok("重建索引", "docs=%d chunks=%d links=%d（%ss）" % (docs, chunks, links, secs))
+            say("      → docs=%d chunks=%d links=%d（%ss）" % (docs, chunks, links, secs))
+            st = vector.build_embeddings(resume=True)
+            run.ok("重建向量", "%d/%d（%d 维）" % (st["embedded"], st["total_chunks"], st["dim"]))
+            say("      → %d/%d" % (st["embedded"], st["total_chunks"]))
+    say("\n[light] 轻量同步完成（仅索引+向量；复验/锚点/PDF/pytest 请跑全量 sync_vault.py）")
+    return finish(run, fp, None, args.dry_run, t_start,
+                  state_path=INDEX_STATE, write_report=False)
+
+
+def finish(run, fp, abl, dry_run, t_start, state_path=STATE, write_report=True):
     dur = time.time() - t_start
     say("\n" + "=" * 62)
     say(" 同步结果：%s（%.1fs）" % ("全绿 ✅" if not run.failed else "存在失败项 ❌", dur))
@@ -525,9 +572,12 @@ def finish(run, fp, abl, dry_run, t_start):
     say("=" * 62)
 
     if not dry_run:
-        write_sync_report(run, fp, abl, dur)
-        if fp:
-            save_state(fp)          # 记住本次指纹，供下次变更检测
+        if write_report:
+            write_sync_report(run, fp, abl, dur)
+        if fp and not run.failed:
+            # 仅在成功时记住指纹：失败（如 gold 门禁未过）不落盘，
+            # 否则下次会被误判「Vault 未变化」而跳过，掩盖失败。
+            save_state(fp, state_path)
     return 1 if run.failed else 0
 
 

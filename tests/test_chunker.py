@@ -23,7 +23,17 @@ def test_long_section_split_keeps_size_bound():
     cs = chunk_doc(_doc(body))
     secs = [c for c in cs if c.section.startswith("## 长节")]
     assert len(secs) >= 2, "超长小节应被二次切分"
-    assert all(len(c.text) <= 600 for c in cs), "每个 chunk 都不应超过 600 字"
+    assert all(len(c.body) <= 600 for c in cs), "每个 chunk 都不应超过 600 字"
+
+
+def test_long_preamble_split_keeps_size_bound():
+    """首个 H2 之前的「概述」前言也必须受 max_chars 约束（超长按句子切分）。"""
+    preamble = "前言内容。" * 300  # 1500 字、无空行 → 会被硬切
+    body = preamble + "\n\n## 第一节\n正文。"
+    cs = chunk_doc(_doc(body))
+    over = [c for c in cs if c.section.startswith("概述")]
+    assert len(over) >= 2, "超长前言应被切分成多块"
+    assert all(len(c.body) <= 600 for c in cs), "每个 chunk 都不应超过 600 字"
 
 
 def test_h3_secondary_split():
@@ -31,14 +41,14 @@ def test_h3_secondary_split():
     cs = chunk_doc(_doc(body))
     assert len(cs) >= 3
     assert any(c.section.startswith("## 节 / ### 子一") for c in cs)
-    assert all(len(c.text) <= 600 for c in cs)
+    assert all(len(c.body) <= 600 for c in cs)
 
 
 def test_single_giant_paragraph_hard_split():
     body = "## 节\n\n" + "字" * 1500
     cs = chunk_doc(_doc(body))
     assert len(cs) >= 3
-    assert all(len(c.text) <= 600 for c in cs)
+    assert all(len(c.body) <= 600 for c in cs)
 
 
 def test_empty_and_whitespace_doc_no_chunks():

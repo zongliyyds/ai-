@@ -6,7 +6,7 @@ cd /d D:\RAG
 set PY=D:\python\python.exe
 
 if "%~1"=="" (
-    echo VaultMind 检索入口（混合检索 BM25 + bge-m3 向量 + RRF）
+    echo VaultMind 检索入口（BM25 检索为默认，向量/RRF 融合可选）
     echo.
     echo 用法：把问题用引号括起来传给它，例如：
     echo    search.bat "CET-4 项目用了什么去重方案？"

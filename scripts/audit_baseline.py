@@ -1,21 +1,45 @@
 # -*- coding: utf-8 -*-
-"""Vault 体检：为 RAG 项目的 M1 数据管道提供真实基线数据（只读）。"""
-import os, re, json, collections
+"""Vault 体检基线（只读）：独立单文件实现，产出 reports/baseline_audit.json。
 
-ROOT = r"D:\AI-Knowledge-Vault\AI-Knowledge-Vault"
+注：正式管道统一走 vaultmind.ingest.auditor（rebase_audit_baseline.py 调用它），
+本脚本保留为独立快速体检入口，口径保持一致。
+"""
+import collections
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+from vaultmind.config import BASELINE_JSON, VAULT_ROOT  # noqa: E402
+
+VAULT = str(VAULT_ROOT)
 LINK = re.compile(r"\[\[([^\]\|#]+)")
 FM = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.S)
 
+
+def parse_tags(fm_raw):
+    m = re.search(r"^tags:\s*(.+)$", fm_raw, re.M)
+    if not m:
+        return []
+    return [t.strip(" []\"'`") for t in re.split(r"[,\n]+", m.group(1).strip())
+            if t.strip(" []\"'`")]
+
+
 docs = {}
-for dirpath, dirnames, filenames in os.walk(ROOT):
+for dirpath, dirnames, filenames in os.walk(VAULT):
     dirnames[:] = [d for d in dirnames if not d.startswith(".")]
     for fn in filenames:
         if not fn.lower().endswith(".md"):
             continue
         p = os.path.join(dirpath, fn)
-        rel = os.path.relpath(p, ROOT).replace("\\", "/")
+        rel = os.path.relpath(p, VAULT).replace("\\", "/")
         try:
-            text = open(p, encoding="utf-8").read()
+            with open(p, encoding="utf-8") as f:
+                text = f.read()
         except Exception as e:
             docs[rel] = {"error": str(e)}
             continue
@@ -24,15 +48,14 @@ for dirpath, dirnames, filenames in os.walk(ROOT):
         body = text[m.end():] if m else text
         ftype = re.search(r"^type:\s*(.+)$", fm_raw, re.M)
         status = re.search(r"^status:\s*(.+)$", fm_raw, re.M)
-        tags = re.findall(r"[\w\u4e00-\u9fff/\-]+", (re.search(r"^tags:\s*(.+)$", fm_raw, re.M) or re.search(r"^tags:\s*$", "", re.M) or type("x", (), {"group": lambda s, i: ""})()).group(1)) if re.search(r"^tags:\s*(.+)$", fm_raw, re.M) else []
-        h2 = len(re.findall(r"^##\s+\S", body, re.M))
-        h3 = len(re.findall(r"^###\s+\S", body, re.M))
-        links = [l.strip() for l in LINK.findall(body)]
         docs[rel] = {
             "chars": len(text), "body_chars": len(body),
             "type": (ftype.group(1).strip() if ftype else None),
             "status": (status.group(1).strip() if status else None),
-            "h2": h2, "h3": h3, "links": links,
+            "h2": len(re.findall(r"^##\s+\S", body, re.M)),
+            "h3": len(re.findall(r"^###\s+\S", body, re.M)),
+            "links": [l.strip() for l in LINK.findall(body)],
+            "tags": parse_tags(fm_raw),
             "has_fm": bool(m),
         }
 
@@ -50,7 +73,7 @@ for rel, d in docs.items():
             inbound[stem2rel[s]] += 1
 
 report = {
-    "root": ROOT,
+    "root": VAULT,
     "doc_count": len(docs),
     "total_chars": sum(d.get("chars", 0) for d in docs.values()),
     "body_chars": sum(d.get("body_chars", 0) for d in docs.values()),
@@ -71,6 +94,7 @@ report = {
     "smallest_lt_300": sorted([[r, d.get("chars", 0)] for r, d in docs.items() if d.get("chars", 0) < 300], key=lambda x: x[1])[:20],
 }
 
-json.dump(report, open(r"D:\deeseek工作区\_vault_audit.json", "w", encoding="utf-8"),
-          ensure_ascii=False, indent=1)
-print("done")
+BASELINE_JSON.parent.mkdir(parents=True, exist_ok=True)
+with open(BASELINE_JSON, "w", encoding="utf-8") as f:
+    json.dump(report, f, ensure_ascii=False, indent=1)
+print("done：%d 篇 → %s" % (len(docs), BASELINE_JSON))

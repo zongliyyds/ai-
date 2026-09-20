@@ -20,6 +20,15 @@ class Chunk:
     prefix: str
     text: str
 
+    @property
+    def body(self) -> str:
+        """展示用纯正文：inline 模式下 text 以 prefix 开头，据此精确剥掉前缀行。"""
+        t = self.text or ""
+        p = self.prefix or ""
+        if p and t.startswith(p):
+            return t[len(p):].lstrip("\n\r").strip()
+        return t.strip()
+
 
 def _prefix(doc: Doc, section: str) -> str:
     tags = "、".join(doc.tags) if doc.tags else "-"
@@ -68,18 +77,20 @@ def _split_paras(text: str, max_chars: int = CHUNK_MAX_CHARS) -> list[str]:
 
 
 def chunk_doc(doc: Doc, granularity: str = "h2", max_chars: int = CHUNK_MAX_CHARS,
-              prefix_mode: str = "field") -> list[Chunk]:
+              prefix_mode: str = "inline") -> list[Chunk]:
     """把一篇笔记切成带上下文前缀的 chunk 列表。
 
-    默认参数 = 正式管道行为（M6b 分块粒度消融只通过传参改变分块，正式路径零改动）。
+    默认参数 = 正式管道行为。V5 已采纳：默认 prefix_mode=inline（前缀入检索）。
+    M6b 消融脚本对 prefix_mode 显式传参、不依赖默认值 → 实验可复现不受影响。
 
     granularity：
-    - "h2"（默认，= 正式管道）：以 H2 为单元，超长按 H3/段落二次切分
+    - "h2"（默认）：以 H2 为单元，超长按 H3/段落二次切分
     - "h3"：H3 优先的细粒度切分（每个 H2 小节都下钻到 H3）
     - "doc"：整篇文档为一块（超长按段落硬切到 max_chars）——最粗粒度
     prefix_mode：
-    - "field"（默认，= 正式管道）：前缀只写入 prefix 字段（该字段**不参与** FTS/向量信号）
-    - "inline"：前缀并入 text → 进入 FTS tokens 与向量嵌入，即「前缀真正被检索」
+    - "inline"（默认，= 正式管道，V5 已采纳）：前缀并入 text → 进入 FTS tokens 与向量嵌入；
+      prefix 字段同时保留该前缀，供展示层用 body 属性精确剥出纯正文（引用不被前缀污染）
+    - "field"：前缀只写入 prefix 字段（该字段**不参与** FTS/向量信号）——M6b 的 V1 基线态
     - "none"：不注入前缀
     """
     chunks: list[Chunk] = []
@@ -94,7 +105,8 @@ def chunk_doc(doc: Doc, granularity: str = "h2", max_chars: int = CHUNK_MAX_CHAR
             return
         prefix = _prefix(doc, section) if prefix_mode != "none" else ""
         if prefix_mode == "inline" and prefix:
-            chunks.append(Chunk(doc.rel, section, seq, "", prefix + "\n" + text))
+            # 前缀并入 text（进检索），prefix 字段同时保留一份（供展示层 body 精确剥离）
+            chunks.append(Chunk(doc.rel, section, seq, prefix, prefix + "\n" + text))
         else:
             chunks.append(Chunk(doc.rel, section, seq, prefix, text))
         seq += 1
@@ -135,7 +147,9 @@ def chunk_doc(doc: Doc, granularity: str = "h2", max_chars: int = CHUNK_MAX_CHAR
     parts = H2_SPLIT_RE.split(doc.body)
     preamble = parts[0]
     if preamble.strip():
-        emit("概述", preamble)
+        # 概述（首个 H2 之前的前言）同样受 max_chars 约束：超长按段落/句子切分，
+        # 避免单个 chunk 过大撞上 bge-m3 的 num_ctx=4096 上限（与 h3/doc 路径一致）。
+        emit_pieces("概述", preamble)
 
     for i in range(1, len(parts), 2):
         heading = parts[i].strip()

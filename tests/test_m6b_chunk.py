@@ -54,10 +54,10 @@ def signature(chunks):
 # ---- 1. 默认行为回归 ----
 
 def test_default_matches_explicit_baseline_params():
-    """默认参数必须与显式基线参数逐字一致（正式管道零改动的证据）。"""
+    """默认参数必须与显式基线参数逐字一致（V5 后正式管道默认 = inline 的证据）。"""
     doc = sample_doc()
     assert signature(chunk_doc(doc)) == signature(
-        chunk_doc(doc, granularity="h2", max_chars=CHUNK_MAX_CHARS, prefix_mode="field"))
+        chunk_doc(doc, granularity="h2", max_chars=CHUNK_MAX_CHARS, prefix_mode="inline"))
 
 
 def test_h2_granularity_keeps_short_section_whole():
@@ -83,7 +83,7 @@ def test_doc_granularity_respects_max_chars():
     big = Doc(rel="x.md", path="", body="# T\n\n" + ("段落内容。" * 200))
     chunks = chunk_doc(big, granularity="doc", max_chars=600)
     assert len(chunks) > 1
-    assert all(len(c.text) <= 600 for c in chunks)
+    assert all(len(c.body) <= 600 for c in chunks)
 
 
 def test_h3_granularity_splits_into_subsections():
@@ -95,7 +95,7 @@ def test_h3_granularity_splits_into_subsections():
 # ---- 3. prefix_mode 语义 ----
 
 def test_prefix_field_mode_keeps_prefix_out_of_text():
-    c = chunk_doc(sample_doc())[0]
+    c = chunk_doc(sample_doc(), prefix_mode="field")[0]
     assert c.prefix.startswith("[文档: 样本文档")
     assert "文档: 样本文档" not in c.text    # field 模式：前缀不进正文（故也不进检索信号）
 
@@ -108,10 +108,11 @@ def test_prefix_none_mode_drops_prefix():
 def test_prefix_inline_mode_moves_prefix_into_text():
     inline = chunk_doc(sample_doc(), prefix_mode="inline")
     field = chunk_doc(sample_doc(), prefix_mode="field")
-    assert all(c.prefix == "" for c in inline)
+    # V5：前缀并入 text（进检索），prefix 字段同时保留一份（供展示层 body 剥离）
     assert inline[0].text.startswith("[文档: 样本文档")
-    # 正文本身不变（只是前缀被并入）
-    assert [c.text for c in field] == [c.text.split("\n", 1)[-1] for c in inline]
+    assert all(c.prefix.startswith("[文档: 样本文档") for c in inline)
+    # 展示层 body 能精确剥出纯正文 = field 模式的 text
+    assert [c.text for c in field] == [c.body for c in inline]
 
 
 # ---- 4/5. 路径隔离与临时索引隔离 ----
@@ -122,25 +123,30 @@ def test_vector_paths_default_and_override(tmp_path):
     assert custom == (tmp_path / "a.db", tmp_path / "e.npy", tmp_path / "c.json")
 
 
-def _vector_fingerprint():
-    out = []
-    for p in (vector.EMB_NPY, vector.EMB_IDS):
-        out.append((p.exists(), p.stat().st_size if p.exists() else None,
-                    p.stat().st_mtime_ns if p.exists() else None))
-    return out
+def test_temp_db_write_does_not_touch_official_vectors(tmp_path, monkeypatch):
+    """M6b 红线：实验索引只能写临时路径，正式向量产物零变化。
 
-
-def test_temp_db_write_does_not_touch_official_vectors(tmp_path):
-    """M6b 红线：实验索引只能写临时路径，正式向量产物零变化。"""
+    用哨兵文件冒充「正式向量产物」：即使本机尚未构建正式向量（EMB_NPY/EMB_IDS
+    不存在），本测试也必须能证明「临时索引构建不触碰向量产物」——否则空文件
+    前后指纹都是 (False,None,None)，红线断言空转通过（假绿）。
+    """
     from vaultmind.ingest.indexer import build_db
+
+    sentinel_npy = tmp_path / "emb.npy"
+    sentinel_ids = tmp_path / "ids.json"
+    sentinel_npy.write_bytes(b"FAKE_NPY_BYTES")
+    sentinel_ids.write_text('["sentinel"]', encoding="utf-8")
+    monkeypatch.setattr(vector, "EMB_NPY", sentinel_npy)
+    monkeypatch.setattr(vector, "EMB_IDS", sentinel_ids)
 
     doc = sample_doc()
     chunks = chunk_doc(doc)
-    before = _vector_fingerprint()
+    before = (sentinel_npy.read_bytes(), sentinel_ids.read_bytes())
     stats = build_db([doc], chunks, db_path=tmp_path / "v.db")
     assert stats["chunks"] == len(chunks) == 3
     assert Path(stats["db_path"]) == tmp_path / "v.db"
-    assert _vector_fingerprint() == before
+    assert (sentinel_npy.read_bytes(), sentinel_ids.read_bytes()) == before, \
+        "临时索引构建不得触碰正式向量产物"
 
 
 # ---- 6. 锚点防漂移 ----

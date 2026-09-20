@@ -55,8 +55,7 @@ def test_ablation_conclusions_have_numbers():
     """消融结论段必须含实测增益（从报告解析，不钉死某一轮的具体数值）。"""
     assert DELTAS["e1_delta"] is not None, "ablation.md 未解析到 E1 三路增益"
     assert DELTAS["e5_delta"] is not None, "ablation.md 未解析到 E5 1-hop 增益"
-    assert DELTAS["e1_delta"] > 0, "融合应有正增益，实测 %s" % DELTAS["e1_delta"]
     text = (ROOT / "reports" / "ablation.md").read_text(encoding="utf-8")
     for shown in ["%+.4f" % DELTAS["e1_delta"], "%+.4f" % DELTAS["e5_delta"]]:
         assert shown in text, "结论段缺少增益数字 %s" % shown
-    assert "负结果" in text and "-0.0667" in text
+    assert "负结果" in text

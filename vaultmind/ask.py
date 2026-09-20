@@ -18,7 +18,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="VaultMind 带引用问答（M4 生成链路）")
     ap.add_argument("question", help="问题文本")
     ap.add_argument("--top", type=int, default=8, help="检索返回块数")
-    ap.add_argument("--mode", default="hybrid", choices=["bm25", "vector", "hybrid"])
+    ap.add_argument("--mode", default="bm25", choices=["bm25", "vector", "hybrid"])
     ap.add_argument("--model", default="qwen2.5:7b-instruct")
     ap.add_argument("--context-only", action="store_true", help="只预览组装后的上下文")
     ap.add_argument("--json", action="store_true", help="输出 JSON")

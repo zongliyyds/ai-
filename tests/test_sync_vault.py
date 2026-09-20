@@ -42,10 +42,11 @@ def test_anchor_patterns_all_match(ctx):
     base, abl = ctx
     sv.ingest_secs = "1.4"
     sv.n_tests = 60
-    sv.title_easy, sv.title_hard = 1.0000, 0.3750
     aud = sv.audit_counts()
     docs, chunks, links = sv.db_counts()
-    edits = sv.anchor_edits(base, abl, aud, (docs, chunks, links), "1.4")
+    edits = sv.anchor_edits(base, abl, aud, (docs, chunks, links))
+    # 假绿防线：anchor_edits 必须真的产出一批回写项，否则下面 for 循环空转、断言空通过
+    assert edits, "anchor_edits 返回空列表——回写逻辑或数据源异常，请排查"
 
     misses = []
     for rel, pattern, new in edits:
@@ -53,8 +54,6 @@ def test_anchor_patterns_all_match(ctx):
         m = re.search(pattern, text)
         if not m:
             misses.append("%s :: %s" % (rel, pattern))
-        elif m.group(0) == new:
-            continue
     assert not misses, "以下模式未命中（文档格式已变，请更新 sync_vault.py）：\n" + "\n".join(misses)
 
 
@@ -62,6 +61,24 @@ def test_anchor_targets_exist():
     """锚点文件必须在仓库里存在。"""
     for rel in sv.ANCHOR_FILES:
         assert (ROOT / rel).exists(), "锚点文件缺失：%s" % rel
+
+
+def test_change_vs_last_short_circuits(tmp_path):
+    """变更检测真正短路：hash 一致 → False；变化 → True（M2 修复的单元级验证）。"""
+    state = tmp_path / "s.json"
+    fp = {"md_count": 3, "hash": "abc123", "at": "2026-01-01 00:00:00"}
+    sv.save_state(fp, state)
+    changed, _why = sv.change_vs_last(fp, state)
+    assert changed is False, "hash 一致应短路跳过"
+    changed2, _why2 = sv.change_vs_last({**fp, "hash": "xyz789"}, state)
+    assert changed2 is True, "hash 变化应触发重建"
+
+
+def test_light_uses_separate_index_state():
+    """轻量同步指纹与全量同步指纹必须隔离，避免互相污染变更判断。"""
+    assert sv.INDEX_STATE != sv.STATE
+    assert sv.INDEX_STATE.name == "index_state.json"
+    assert sv.STATE.name == "sync_state.json"
 
 
 def test_dry_run_apply_is_readonly(tmp_path):
